@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime": {
+    "version": "LuaJIT"
+  },
+  "workspace": {
+    "library": [
+      "lua",
+      "$VIMRUNTIME",
+      "${3rd}/busted/library",
+      "${3rd}/luassert/library"
+    ],
+    "checkThirdParty": false
+  },
+  "diagnostics": {
+    "unusedLocalExclude": ["_*"]
+  },
+    "diagnostics.disable": [
+        "undefined-field"
+    ]
+}
