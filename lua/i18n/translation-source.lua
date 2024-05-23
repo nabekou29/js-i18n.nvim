@@ -1,5 +1,6 @@
 local Path = require("plenary.path")
 local scan = require("plenary.scandir")
+local async = require("plenary.async")
 
 local M = {}
 
@@ -35,33 +36,43 @@ end
 
 ---- TranslationSource
 
+--- 翻訳リソースの管理をするクラス
 --- @class TranslationSource
 --- @field translations table<string, table<string, table>> 言語とファイルごとの翻訳リソース. 形式: { [lang: string]: { [file_name: string]: JSON } }
 --- @field watch_handlers unknown[] ファイル監視ハンドラ
---- @field workspace_dir string ワークスペースディレクトリ
+--- @field config TranslationSourceConfig 設定
 local TranslationSource = {}
 TranslationSource.__index = TranslationSource
 
+--- 設定
+--- @class TranslationSourceConfig
+--- @field workspace_dir string ワークスペースディレクトリ
+--- @field on_update? fun() 翻訳リソース更新時のコールバック
+
 --- コンストラクタ
---- @param workspace_dir string ワークスペースディレクトリ
+--- @param config TranslationSourceConfig
 --- @return TranslationSource
-function TranslationSource.new(workspace_dir)
+function TranslationSource.new(config)
 	local self = setmetatable({}, TranslationSource)
 
 	self.translations = {}
 	self.watch_handlers = {}
-	self.workspace_dir = workspace_dir
+	self.config = config
 	return self
 end
 
 --- 文言ファイルの監視を開始する
-function TranslationSource:start_watch()
-	local files = M.get_translation_files(self.workspace_dir)
+--- @param callback? fun() 初回読み取り完了時のコールバック
+function TranslationSource:start_watch(callback)
+	local files = M.get_translation_files(self.config.workspace_dir)
 
 	local interval = 1000
+	local initial_update_funcs = {}
 	for _, file in ipairs(files) do
 		-- 開始時に読み込む
-		self:update_translation(file)
+		table.insert(initial_update_funcs, function()
+			async.wrap(TranslationSource.update_translation, 3)(self, file)
+		end)
 
 		local handler = vim.uv.new_fs_poll()
 		table.insert(self.watch_handlers, handler)
@@ -75,10 +86,26 @@ function TranslationSource:start_watch()
 			self:update_translation(file, function(err)
 				if err then
 					print("Error updating translation file: ", err)
+					return
+				end
+				if self.config.on_update then
+					self.config.on_update()
 				end
 			end)
 		end)
 	end
+
+	-- 初回読み込みの完了を待ってからコールバックを実行
+	async.run(function()
+		async.util.join(initial_update_funcs)
+	end, function()
+		if self.config.on_update then
+			self.config.on_update()
+		end
+		if callback then
+			callback()
+		end
+	end)
 end
 
 --- 文言ファイルの監視を停止する
@@ -167,6 +194,12 @@ function TranslationSource:get_translation(lang, key)
 			return text
 		end
 	end
+end
+
+--- 利用可能な言語の一覧を取得する
+--- @return string[]
+function TranslationSource:get_available_languages()
+	return vim.tbl_keys(self.translations)
 end
 
 M.TranslationSource = TranslationSource

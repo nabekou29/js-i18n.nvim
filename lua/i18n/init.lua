@@ -1,6 +1,8 @@
 local translation_source = require("i18n.translation-source")
 local extmark = require("i18n.extmark")
 
+vim.g.i18n_lang = "ja"
+
 local i18n = {}
 
 --- @class i18n.Opts
@@ -18,6 +20,42 @@ local function get_root(bufnr)
 	end
 end
 
+--- ワークスペース内の TypeScript/JavaScript ファイルのバッファ番号を取得する
+local function get_workspace_bufs(workspace_dir)
+	local bufs = {}
+	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+		local filename = vim.api.nvim_buf_get_name(bufnr)
+		local ptn = vim.fn.glob2regpat("*.{ts,js,tsx,jsx}")
+		if filename:sub(1, #workspace_dir) == workspace_dir and vim.fn.match(filename, ptn) > 0 then
+			table.insert(bufs, bufnr)
+		end
+	end
+	return bufs
+end
+
+--- コマンド用の言語の補完関数を取得する
+--- @param translation_sources TranslationSource[]
+--- @return fun(string, string, number): string[]
+local function get_completion_available_languages(translation_sources)
+	return function(arg_lead, _cmd_line, _cursor_pos)
+		local matches = {}
+
+		local available_languages = {}
+		for _, source in ipairs(translation_sources) do
+			for _, lang in ipairs(source:get_available_languages()) do
+				available_languages[lang] = true
+			end
+		end
+
+		for lang, _ in pairs(available_languages) do
+			if lang:match(arg_lead) then
+				table.insert(matches, lang)
+			end
+		end
+		return matches
+	end
+end
+
 --- attach
 --- @param client vim.lsp.Client
 --- @param bufnr number
@@ -25,14 +63,45 @@ function i18n.attach(client, bufnr)
 	--
 end
 
-vim.g.i18n_lang = "ja"
-
 --- setup
 --- @param _opts i18n.Opts
 i18n.setup = function(_opts)
+	-- ワークスペースごとに翻訳ソースを管理する（モノレポ対応）
 	local t_source_by_workspace = {}
 
 	local group = vim.api.nvim_create_augroup("i18n_tools", {})
+
+	-- JavaScript/TypeScript ファイルの更新時の処理
+	local handle_update_js_file = function(bufnr)
+		local workspace_dir = get_root(bufnr)
+
+		if t_source_by_workspace[workspace_dir] == nil then
+			t_source_by_workspace[workspace_dir] = translation_source.TranslationSource.new({
+				workspace_dir = workspace_dir,
+				-- 翻訳リソース更新時の処理
+				on_update = function()
+					for _, bufnr in ipairs(get_workspace_bufs(workspace_dir)) do
+						extmark.set_extmark(bufnr, vim.g.i18n_lang, t_source_by_workspace[workspace_dir])
+					end
+				end,
+			})
+			t_source_by_workspace[workspace_dir]:start_watch()
+		else
+			extmark.set_extmark(bufnr, vim.g.i18n_lang, t_source_by_workspace[workspace_dir])
+		end
+	end
+
+	local apply_translation_all_bufs = function()
+		for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+			local filename = vim.api.nvim_buf_get_name(bufnr)
+			local ptn = vim.fn.glob2regpat("*.{ts,js,tsx,jsx}")
+			if vim.fn.match(filename, ptn) > 0 then
+				handle_update_js_file(bufnr)
+			end
+		end
+	end
+
+	-- ファイルの変更などがあれば、バーチャルテキストを更新する
 	vim.api.nvim_create_autocmd({
 		"BufEnter",
 		"TextChanged",
@@ -41,25 +110,28 @@ i18n.setup = function(_opts)
 	}, {
 		pattern = "*.{ts,js,tsx,jsx}",
 		group = group,
-		callback = function()
-			local bufnr = vim.api.nvim_get_current_buf()
-			local workspace_dir = get_root(bufnr)
-			if t_source_by_workspace[workspace_dir] == nil then
-				t_source_by_workspace[workspace_dir] = translation_source.TranslationSource.new(workspace_dir)
-				t_source_by_workspace[workspace_dir]:start_watch()
-			end
-
-			extmark.set_extmark(vim.g.i18n_lang, t_source_by_workspace[workspace_dir])
+		callback = function(ev)
+			local bufnr = ev.buf
+			handle_update_js_file(bufnr)
 		end,
 	})
+
+	-- 読み込み済みのすべてのバッファに対して処理を行う
+	apply_translation_all_bufs()
 
 	vim.api.nvim_create_user_command("I18nSetLang", function(opts)
 		local lang = opts.args
 		vim.g.i18n_lang = lang
-		i18n.set_extmark(lang)
+		apply_translation_all_bufs()
 	end, {
 		nargs = 1,
-		-- TODO: 補完出るようにしたい
+		complete = function(arg_lead, cmd_line, cursor_pos)
+			return get_completion_available_languages(vim.tbl_values(t_source_by_workspace))(
+				arg_lead,
+				cmd_line,
+				cursor_pos
+			)
+		end,
 	})
 end
 

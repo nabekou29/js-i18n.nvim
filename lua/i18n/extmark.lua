@@ -45,12 +45,12 @@ local function find_call_t_expressions(bufnr, start, stop)
 end
 
 --- バーチャルテキストを表示する
+--- @param bufnr integer バッファ番号
 --- @param lang string 言語
 --- @param t_source TranslationSource 翻訳ソース
-function M.set_extmark(lang, t_source)
-	M.clear_extmarks()
+function M.set_extmark(bufnr, lang, t_source)
+	M.clear_extmarks(bufnr)
 
-	local bufnr = vim.api.nvim_get_current_buf()
 	local t_nodes = find_call_t_expressions(bufnr, 0, -1)
 	for _, t_node in ipairs(t_nodes) do
 		local key_node = t_node[2]
@@ -72,8 +72,9 @@ function M.set_extmark(lang, t_source)
 	end
 end
 
-function M.clear_extmarks()
-	local bufnr = vim.api.nvim_get_current_buf()
+--- バーチャルテキストを削除する
+--- @param bufnr integer バッファ番号
+function M.clear_extmarks(bufnr)
 	local extmarks = vim.api.nvim_buf_get_extmarks(bufnr, ns_id, 0, -1, {})
 	for _, extmark in ipairs(extmarks) do
 		local id = extmark[1]

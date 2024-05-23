@@ -16,6 +16,7 @@
     "unusedLocalExclude": ["_*"]
   },
     "diagnostics.disable": [
-        "undefined-field"
+        "undefined-field",
+        "redefined-local"
     ]
 }
