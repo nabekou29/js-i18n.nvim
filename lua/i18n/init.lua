@@ -1,12 +1,14 @@
 local translation_source = require("i18n.translation-source")
-local extmark = require("i18n.extmark")
+local virt_text = require("i18n.virt_text")
+local c = require("i18n.config")
+local utils = require("i18n.utils")
 
-vim.g.i18n_lang = "ja"
+--- 選択中の言語
+--- バーチャルテキストの表示や定義ジャンプの際に使用する
+--- @type string|nil
+local current_language = nil
 
 local i18n = {}
-
---- @class i18n.Opts
---- @field default_locale string
 
 --- プロジェクトのルートディレクトリを取得する
 --- @param bufnr number
@@ -34,7 +36,7 @@ local function get_workspace_bufs(workspace_dir)
 end
 
 --- コマンド用の言語の補完関数を取得する
---- @param translation_sources TranslationSource[]
+--- @param translation_sources I18n.TranslationSource[]
 --- @return fun(string, string, number): string[]
 local function get_completion_available_languages(translation_sources)
 	return function(arg_lead, _cmd_line, _cursor_pos)
@@ -56,16 +58,12 @@ local function get_completion_available_languages(translation_sources)
 	end
 end
 
---- attach
---- @param client vim.lsp.Client
---- @param bufnr number
-function i18n.attach(client, bufnr)
-	--
-end
-
 --- setup
---- @param _opts i18n.Opts
-i18n.setup = function(_opts)
+--- @param opts i18n.Config
+i18n.setup = function(opts)
+	-- 設定の初期化
+	c.setup(opts)
+
 	-- ワークスペースごとに翻訳ソースを管理する（モノレポ対応）
 	local t_source_by_workspace = {}
 
@@ -81,13 +79,27 @@ i18n.setup = function(_opts)
 				-- 翻訳リソース更新時の処理
 				on_update = function()
 					for _, bufnr in ipairs(get_workspace_bufs(workspace_dir)) do
-						extmark.set_extmark(bufnr, vim.g.i18n_lang, t_source_by_workspace[workspace_dir])
+						local ws_t_source = t_source_by_workspace[workspace_dir]
+						virt_text.set_extmark(
+							bufnr,
+							utils.get_language(
+								current_language,
+								c.config.primary_language,
+								ws_t_source:get_available_languages()
+							),
+							ws_t_source
+						)
 					end
 				end,
 			})
 			t_source_by_workspace[workspace_dir]:start_watch()
 		else
-			extmark.set_extmark(bufnr, vim.g.i18n_lang, t_source_by_workspace[workspace_dir])
+			local ws_t_source = t_source_by_workspace[workspace_dir]
+			virt_text.set_extmark(
+				bufnr,
+				utils.get_language(current_language, c.config.primary_language, ws_t_source:get_available_languages()),
+				t_source_by_workspace[workspace_dir]
+			)
 		end
 	end
 
@@ -121,7 +133,7 @@ i18n.setup = function(_opts)
 
 	vim.api.nvim_create_user_command("I18nSetLang", function(opts)
 		local lang = opts.args
-		vim.g.i18n_lang = lang
+		current_language = lang
 		apply_translation_all_bufs()
 	end, {
 		nargs = 1,
