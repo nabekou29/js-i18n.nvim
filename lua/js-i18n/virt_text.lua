@@ -1,5 +1,5 @@
-local c = require("i18n.config")
-local utils = require("i18n.utils")
+local c = require("js-i18n.config")
+local utils = require("js-i18n.utils")
 
 local ns_id = vim.api.nvim_create_namespace("I18n")
 
@@ -66,13 +66,13 @@ end
 
 --- t関数を含むノードを検索する
 --- @param bufnr integer バッファ番号
---- @param start integer 開始行
---- @param stop integer 終了行
+--- @param start? integer 開始行
+--- @param stop? integer 終了行
 --- @return TSNode[][]
 local function find_call_t_expressions(bufnr, start, stop)
 	local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
 	if not ok then
-		parser = vim.treesitter.get_parser(bufnr, "typescript")
+		return {}
 	end
 	local tree = parser:parse()[1]
 	local root_node = tree:root()
@@ -120,7 +120,7 @@ function M.set_extmark(bufnr, current_language, t_source)
 
 	M.clear_extmarks(bufnr)
 
-	local t_nodes = find_call_t_expressions(bufnr, 0, -1)
+	local t_nodes = find_call_t_expressions(bufnr)
 	for _, t_node in ipairs(t_nodes) do
 		local key_node = t_node[2]
 

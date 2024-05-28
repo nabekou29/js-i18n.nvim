@@ -1,5 +1,17 @@
 local M = {}
 
+--- プロジェクトのルートディレクトリを取得する
+--- @param bufnr number
+--- @return string プロジェクトのルートディレクトリ
+function M.get_workspace_root(bufnr)
+	local root = vim.fs.root(bufnr, "package.json")
+	if root == nil then
+		return vim.fn.getcwd()
+	else
+		return root
+	end
+end
+
 --- 使用すべき言語を取得する
 --- @param current_language string | nil 選択中の言語
 --- @param primary_language string[] 優先表示する言語
@@ -31,6 +43,24 @@ function M.utf_truncate(str, max_length, ellipsis_char)
 		return str
 	end
 	return str:sub(1, pos[max_length + 1] - 1) .. ellipsis_char
+end
+
+--- Treesitter のノードから指定したタイプの親ノードを取得する
+--- @param node TSNode
+--- @param type_ string
+function M.find_parent_by_type(node, type_)
+	if node:type() == type_ then
+		return node
+	end
+
+	local parent = node:parent()
+	while parent ~= nil do
+		if parent:type() == type_ then
+			return parent
+		end
+		parent = parent:parent()
+	end
+	return nil
 end
 
 return M
