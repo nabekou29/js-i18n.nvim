@@ -174,7 +174,7 @@ end
 --- 文言の取得
 --- @param lang string 言語
 --- @param key string | string[] キー
---- @return string | nil
+--- @return any|string|nil
 function TranslationSource:get_translation(lang, key)
 	if self.translations[lang] == nil then
 		return nil

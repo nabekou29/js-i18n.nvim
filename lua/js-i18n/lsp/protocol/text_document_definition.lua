@@ -9,25 +9,19 @@ local Path = require("plenary.path")
 --- @return string | nil error
 --- @return lsp.Location | lsp.Location[] | nil result
 local function handler(params, client)
-	local textDocument = params.textDocument
-	local position = params.position
-
-	local bufnr = vim.uri_to_bufnr(textDocument.uri)
+	local bufnr = vim.uri_to_bufnr(params.textDocument.uri)
 
 	local workspace_dir = utils.get_workspace_root(bufnr)
 	local t_source = client.t_source_by_workspace[workspace_dir]
-	local lang = utils.get_language(
-		client.current_language,
-		c.config.primary_language,
-		client.t_source_by_workspace[workspace_dir]:get_available_languages()
-	)
+	local lang =
+		utils.get_language(client.current_language, c.config.primary_language, t_source:get_available_languages())
 
-	local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, position)
+	local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, params.position)
 	if not ok or not key_node then
 		return nil, nil
 	end
 
-	local key = (vim.treesitter.get_node_text(key_node, bufnr))
+	local key = vim.treesitter.get_node_text(key_node, bufnr)
 
 	for file, _ in pairs(t_source.translations[lang]) do
 		local bufnr = vim.api.nvim_create_buf(false, true)

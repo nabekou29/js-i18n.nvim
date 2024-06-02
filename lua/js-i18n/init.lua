@@ -73,7 +73,7 @@ i18n.setup = function(opts)
 				--- @param _dispatchers vim.lsp.rpc.Dispatchers
 				--- @return vim.lsp.rpc.PublicClient
 				cmd = function(_dispatchers)
-					return require("js-i18n.lsp.init").create_rpc(client)
+					return require("js-i18n.lsp").create_rpc(client)
 				end,
 				filetypes = {
 					"javascript",
