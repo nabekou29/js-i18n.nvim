@@ -9,6 +9,7 @@ local function handler(_params, _client)
 		capabilities = {
 			definitionProvider = true,
 			hoverProvider = true,
+			completionProvider = {},
 		},
 	}
 	return nil, server_capabilities

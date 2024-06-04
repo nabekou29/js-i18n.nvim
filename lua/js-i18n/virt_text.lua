@@ -37,7 +37,7 @@ end
 
 --- バーチャルテキストのフォーマット関数
 --- @param text string
---- @param opts default_virt_text_format_opts
+--- @param _opts default_virt_text_format_opts
 --- @return string|string[][]
 ---
 --- @class default_virt_text_format_opts
@@ -45,7 +45,7 @@ end
 --- @field lang string 言語
 --- @field current_language string 選択中の言語
 ---
-local function default_virt_text_format(text, opts)
+local function default_virt_text_format(text, _opts)
 	local prefix = ""
 	local suffix = ""
 	if not c.config.virt_text.conceal_key then
@@ -54,11 +54,6 @@ local function default_virt_text_format(text, opts)
 
 	if c.config.virt_text.max_length > 0 then
 		text = utils.utf_truncate(text, c.config.virt_text.max_length, "...")
-	end
-
-	-- fallback
-	if opts.current_language ~= opts.lang then
-		return { { prefix .. text .. suffix, "WarningMsg" } }
 	end
 
 	return prefix .. text .. suffix

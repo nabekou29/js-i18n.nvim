@@ -16,18 +16,19 @@ end
 
 --- Treesitterパーサーをセットアップしてキーにマッチするノードを取得する関数
 --- @param bufnr number 反訳リソースのバッファ番号
---- @param key string キー
+--- @param keys string[] キー
 --- @param start? integer 開始位置
 --- @param stop? integer 終了位置
 --- @return TSNode | nil, string | nil
-function M.get_node_for_key(bufnr, key, start, stop)
+function M.get_node_for_key(bufnr, keys, start, stop)
+	local key = table.concat(keys, ".")
+	vim.print("key: " .. key .. " bufnr: " .. bufnr)
 	local ts = vim.treesitter
 
 	local parser = ts.get_parser(bufnr, "json")
 	local tree = parser:parse()[1]
 	local root = tree:root()
 
-	local keys = vim.split(key, ".", { plain = true })
 	local query = ts.query.parse("json", '(pair key: (string) @key (#eq? @key "\\"' .. keys[1] .. '\\""))')
 
 	--- @type TSNode[]
@@ -53,11 +54,11 @@ function M.get_node_for_key(bufnr, key, start, stop)
 
 	if #keys == 1 then
 		return node, nil
-	else
+	elseif node ~= nil then
 		table.remove(keys, 1)
 		local parent = node:parent()
 		if parent ~= nil then
-			return M.get_node_for_key(bufnr, table.concat(keys, "."), parent:start(), parent:end_())
+			return M.get_node_for_key(bufnr, keys, parent:start(), parent:end_())
 		end
 	end
 
@@ -86,7 +87,7 @@ function M.check_cursor_in_t_argument(bufnr, position)
 	local line = position.line
 	local character = position.character
 	local node = root:named_descendant_for_range(line, character, line, character)
-	if node == nil or node:type() ~= "string_fragment" then
+	if node == nil or vim.tbl_contains({ "string", "string_fragment" }, node:type()) == false then
 		return false
 	end
 
@@ -100,8 +101,8 @@ function M.check_cursor_in_t_argument(bufnr, position)
         ] @t_func (#match? @t_func "^(i18next\.)?t$")
         arguments: (arguments
           (string
-            (string_fragment) @str_frag
-          )
+            (string_fragment)? @str_frag
+          ) @str
         )
       )
     ]]
@@ -115,9 +116,6 @@ function M.check_cursor_in_t_argument(bufnr, position)
 	local key_node = nil
 	for _, match in query:iter_matches(call_exp_node, bufnr) do
 		key_node = match[2]
-	end
-	if key_node == nil then
-		return false
 	end
 
 	return true, key_node

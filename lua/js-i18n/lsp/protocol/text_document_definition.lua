@@ -28,7 +28,8 @@ local function handler(params, client)
 		local content = Path:new(file):read()
 		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))
 
-		local node = lsp_utils.get_node_for_key(bufnr, key)
+		local keys = vim.split(key, ".", { plain = true })
+		local node = lsp_utils.get_node_for_key(bufnr, keys)
 		vim.api.nvim_buf_delete(bufnr, { force = true })
 
 		if node ~= nil then
