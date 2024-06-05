@@ -57,7 +57,7 @@ i18next, react-i18next の高度な利用については、まだサポートし
 ## 設定
 
 デフォルトの設定は以下の通りです。
-省略されている箇所については、[config.lua])(./lua/js-i18n/config.lua) を参照してください。
+省略されている箇所については、[config.lua](./lua/js-i18n/config.lua) を参照してください。
 
 ```lua
 {
