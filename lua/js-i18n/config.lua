@@ -1,8 +1,20 @@
 local M = {}
 
+--- ファイルパスから言語を検出する
+--- @param path string ファイルパス
+local function default_detect_language(path)
+  local abs_path = vim.fn.fnamemodify(path, ":p")
+  local split = vim.split(abs_path, "/")
+  local lang = split[#split - 1]
+  return lang
+end
+
 --- @class I18n.Config
 --- @field primary_language string[] 優先表示する言語
---- @field virt_text? I18n.VirtTextConfig バーチャルテキストの設定
+--- @field translation_source string[] 翻訳ソースのパターン
+--- @field detect_language fun(path: string): string ファイルパスから言語を検出する関数
+--- @field key_separator string キーのセパレータ
+--- @field virt_text I18n.VirtTextConfig バーチャルテキストの設定
 
 --- @class I18n.VirtTextConfig
 --- @field enabled boolean バーチャルテキストを有効にするかどうか
@@ -14,6 +26,9 @@ local M = {}
 --- @type I18n.Config
 local default_config = {
   primary_language = {},
+  translation_source = { "**/locales/*/translation.json" },
+  detect_language = default_detect_language,
+  key_separator = ".",
   virt_text = {
     enabled = true,
     conceal_key = false,

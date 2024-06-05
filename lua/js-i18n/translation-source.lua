@@ -1,36 +1,28 @@
+local c = require("js-i18n.config")
 local Path = require("plenary.path")
 local scan = require("plenary.scandir")
 local async = require("plenary.async")
 
 local M = {}
 
-local default_pattern = "**/locales/*/translation.json"
-
---- ファイルパスから言語を検出する
---- @param path string ファイルパス
-function M.detect_language(path)
-  local abs_path = vim.fn.fnamemodify(path, ":p")
-  local split = vim.split(abs_path, "/")
-  local lang = split[#split - 1]
-  return lang
-end
-
 --- 文言ファイルの一覧を取得する
 --- @param dir string ディレクトリ
 --- @return string[]
 function M.get_translation_files(dir)
-  local regexp = vim.regex(vim.fn.glob2regpat(default_pattern))
   local result = {}
-  scan.scan_dir(dir, {
-    search_pattern = "%.json$",
-    on_insert = function(path)
-      local match_s = regexp:match_str(path)
-      if match_s then
-        table.insert(result, path)
-      end
-    end,
-  })
-
+  for _, pattern in ipairs(c.config.translation_source) do
+    vim.print("pattern: " .. pattern)
+    local regexp = vim.regex(vim.fn.glob2regpat(pattern))
+    scan.scan_dir(dir, {
+      search_pattern = "%.json$",
+      on_insert = function(path)
+        local match_s = regexp:match_str(path)
+        if match_s then
+          table.insert(result, path)
+        end
+      end,
+    })
+  end
   return result
 end
 
@@ -159,7 +151,7 @@ function TranslationSource:update_translation(file, callback)
       return
     end
 
-    local lang = M.detect_language(file)
+    local lang = c.config.detect_language(file)
     if self.translations[lang] == nil then
       self.translations[lang] = {}
     end

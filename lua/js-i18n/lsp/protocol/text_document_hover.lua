@@ -1,5 +1,6 @@
 local utils = require("js-i18n.utils")
 local lsp_utils = require("js-i18n.lsp.utils")
+local c = require("js-i18n.config")
 
 --- @class Hover
 --- @field contents lsp.MarkedString | lsp.MarkedString[] | lsp.MarkupContent
@@ -21,7 +22,7 @@ local function handler(params, client)
     return nil, nil
   end
   local key = vim.treesitter.get_node_text(key_node, bufnr)
-  local keys = vim.split(key, ".", { plain = true })
+  local keys = vim.split(key, c.config.key_separator, { plain = true })
 
   -- 各言語の翻訳を表示
   local contents = {}

@@ -26,7 +26,8 @@ local function get_translation(lang, key, t_source)
   end
 
   for _, l in ipairs(langs) do
-    local text = t_source:get_translation(l, vim.split(key, "%."))
+    local text =
+      t_source:get_translation(l, vim.split(key, c.config.key_separator, { plain = true }))
     if text ~= nil and type(text) == "string" then
       return text, l
     end

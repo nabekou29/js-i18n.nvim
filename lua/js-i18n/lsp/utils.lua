@@ -1,6 +1,7 @@
 -- JavaScript/TypeScript や 文言リソースの解析用のユーティリティ関数を提供するモジュール
 
 local utils = require("js-i18n.utils")
+local c = require("js-i18n.config")
 
 local M = {}
 
@@ -21,7 +22,7 @@ end
 --- @param stop? integer 終了位置
 --- @return TSNode | nil, string | nil
 function M.get_node_for_key(bufnr, keys, start, stop)
-  local key = table.concat(keys, ".")
+  local key = table.concat(keys, c.config.key_separator)
   vim.print("key: " .. key .. " bufnr: " .. bufnr)
   local ts = vim.treesitter
 

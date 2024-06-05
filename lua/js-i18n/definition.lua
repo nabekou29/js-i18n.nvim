@@ -27,7 +27,7 @@ local function get_node_for_key(bufnr, key, start, stop)
   local tree = parser:parse()[1]
   local root = tree:root()
 
-  local keys = vim.split(key, ".", { plain = true })
+  local keys = vim.split(key, c.config.key_separator, { plain = true })
   local query =
     ts.query.parse("json", '(pair key: (string) @key (#eq? @key "\\"' .. keys[1] .. '\\""))')
 
@@ -58,7 +58,12 @@ local function get_node_for_key(bufnr, key, start, stop)
     table.remove(keys, 1)
     local parent = node:parent()
     if parent ~= nil then
-      return get_node_for_key(bufnr, table.concat(keys, "."), parent:start(), parent:end_())
+      return get_node_for_key(
+        bufnr,
+        table.concat(keys, c.config.key_separator),
+        parent:start(),
+        parent:end_()
+      )
     end
   end
 

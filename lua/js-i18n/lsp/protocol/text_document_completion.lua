@@ -9,7 +9,7 @@ local c = require("js-i18n.config")
 local function get_all_translation(translation, prefix, result)
   result = result or {}
   for key, value in pairs(translation) do
-    local full_key = prefix and prefix .. "." .. key or key
+    local full_key = prefix and prefix .. c.config.key_separator .. key or key
     if type(value) == "table" then
       get_all_translation(value, full_key, result)
     else
