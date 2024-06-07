@@ -23,7 +23,6 @@ end
 --- @return TSNode | nil, string | nil
 function M.get_node_for_key(bufnr, keys, start, stop)
   local key = table.concat(keys, c.config.key_separator)
-  vim.print("key: " .. key .. " bufnr: " .. bufnr)
   local ts = vim.treesitter
 
   local parser = ts.get_parser(bufnr, "json")

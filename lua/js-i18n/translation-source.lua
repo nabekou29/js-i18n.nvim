@@ -11,7 +11,6 @@ local M = {}
 function M.get_translation_files(dir)
   local result = {}
   for _, pattern in ipairs(c.config.translation_source) do
-    vim.print("pattern: " .. pattern)
     local regexp = vim.regex(vim.fn.glob2regpat(pattern))
     scan.scan_dir(dir, {
       search_pattern = "%.json$",
