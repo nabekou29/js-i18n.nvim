@@ -28,8 +28,8 @@ local function get_completion_items(client, bufnr)
   local t_source = client.t_source_by_workspace[utils.get_workspace_root(bufnr)]
 
   local translations = {}
-  for _, source in pairs(t_source.translations[lang]) do
-    for key, value in pairs(get_all_translation(source)) do
+  for _, source in pairs(t_source.translations[lang] or {}) do
+    for key, value in pairs(get_all_translation(source) or {}) do
       translations[key] = value
     end
   end
