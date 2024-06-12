@@ -69,14 +69,18 @@ function TranslationSource:start_watch(callback)
     table.insert(self.watch_handlers, handler)
     vim.uv.fs_poll_start(handler, file, interval, function(err, _)
       if err then
-        vim.notify_once("Error watching translation file: " .. err, vim.log.levels.ERROR)
+        vim.schedule(function()
+          vim.notify_once("Error watching translation file: " .. err, vim.log.levels.ERROR)
+        end)
         return
       end
 
       ---@diagnostic disable-next-line: redefined-local
       self:update_translation(file, function(err)
         if err then
-          vim.notify_once("Error updating translation file: " .. err, vim.log.levels.ERROR)
+          vim.schedule(function()
+            vim.notify_once("Error updating translation file: " .. err, vim.log.levels.ERROR)
+          end)
           return
         end
         if self.config.on_update then
