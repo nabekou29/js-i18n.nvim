@@ -1,3 +1,5 @@
+local utils = require("js-i18n.utils")
+
 local M = {}
 
 --- ファイルパスから言語を検出する
@@ -9,6 +11,24 @@ local function default_detect_language(path)
   return lang
 end
 
+--- バーチャルテキストのフォーマット関数
+--- @param text string
+--- @param opts I18n.VirtText.FormatOpts
+--- @return string|string[][]
+local function default_virt_text_format(text, opts)
+  local prefix = ""
+  local suffix = ""
+  if not opts.config.virt_text.conceal_key then
+    prefix = " : "
+  end
+
+  if opts.config.virt_text.max_length > 0 then
+    text = utils.utf_truncate(text, opts.config.virt_text.max_length, "...")
+  end
+
+  return prefix .. text .. suffix
+end
+
 --- @class I18n.Config
 --- @field primary_language string[] 優先表示する言語
 --- @field translation_source string[] 翻訳ソースのパターン
@@ -18,6 +38,7 @@ end
 
 --- @class I18n.VirtTextConfig
 --- @field enabled boolean バーチャルテキストを有効にするかどうか
+--- @field format fun(text: string, opts: I18n.VirtText.FormatOpts): string|string[][] バーチャルテキストのフォーマット関数
 --- @field max_length number バーチャルテキストの最大長 (0 の場合は無制限)
 --- @field conceal_key boolean キーを隠すかどうか
 --- @field fallback boolean 選択中の言語にキーが存在しない場合に他の言語を表示するかどうか
@@ -31,6 +52,7 @@ local default_config = {
   key_separator = ".",
   virt_text = {
     enabled = true,
+    format = default_virt_text_format,
     conceal_key = false,
     fallback = false,
     max_length = 0,
