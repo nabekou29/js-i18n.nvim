@@ -5,6 +5,13 @@ local ns_id = vim.api.nvim_create_namespace("I18n")
 
 local M = {}
 
+--- フォーマットのオプション
+--- @class I18n.VirtText.FormatOpts
+--- @field key string キー
+--- @field lang string 言語
+--- @field current_language string 選択中の言語
+--- @field config I18n.Config 設定
+
 --- 翻訳を取得する
 --- @param lang string 言語
 --- @param key string キー
@@ -34,30 +41,6 @@ local function get_translation(lang, key, t_source)
   end
 
   return nil, nil
-end
-
---- バーチャルテキストのフォーマット関数
---- @param text string
---- @param _opts default_virt_text_format_opts
---- @return string|string[][]
----
---- @class default_virt_text_format_opts
---- @field key string キー
---- @field lang string 言語
---- @field current_language string 選択中の言語
----
-local function default_virt_text_format(text, _opts)
-  local prefix = ""
-  local suffix = ""
-  if not c.config.virt_text.conceal_key then
-    prefix = " : "
-  end
-
-  if c.config.virt_text.max_length > 0 then
-    text = utils.utf_truncate(text, c.config.virt_text.max_length, "...")
-  end
-
-  return prefix .. text .. suffix
 end
 
 --- t関数を含むノードを検索する
@@ -128,10 +111,11 @@ function M.set_extmark(bufnr, current_language, t_source)
     end
 
     local key_row_start, key_col_start, key_row_end, key_col_end = key_node:range()
-    local virt_text = default_virt_text_format(text, {
+    local virt_text = c.config.virt_text.format(text, {
       key = key,
       lang = lang,
       current_language = current_language,
+      config = c.config,
     })
     if type(virt_text) == "string" then
       virt_text = { { virt_text, "Comment" } }
