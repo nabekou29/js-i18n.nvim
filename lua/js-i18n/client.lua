@@ -38,11 +38,15 @@ end
 function Client:get_language(bufnr)
   local workspace_dir = utils.get_workspace_root(bufnr)
   local ws_t_source = self.t_source_by_workspace[workspace_dir]
-  return utils.get_language(
-    self.current_language,
-    c.config.primary_language,
-    ws_t_source:get_available_languages()
-  )
+  if ws_t_source == nil then
+    return utils.get_language(self.current_language, c.config.primary_language, {})
+  else
+    return utils.get_language(
+      self.current_language,
+      c.config.primary_language,
+      ws_t_source:get_available_languages()
+    )
+  end
 end
 
 --- 対象のバッファでバーチャルテキストを更新する
@@ -54,6 +58,9 @@ function Client:update_virt_text(bufnr)
   end
   local workspace_dir = utils.get_workspace_root(bufnr)
   local ws_t_source = self.t_source_by_workspace[workspace_dir]
+  if ws_t_source == nil then
+    return
+  end
   virt_text.set_extmark(bufnr, self:get_language(bufnr), ws_t_source)
 end
 

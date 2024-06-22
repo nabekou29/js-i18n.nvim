@@ -29,7 +29,7 @@ end
 
 --- 翻訳リソースの管理をするクラス
 --- @class I18n.TranslationSource
---- @field translations table<string, table<string, table>> 言語とファイルごとの翻訳リソース. 形式: { [lang: string]: { [file_name: string]: JSON } }
+--- @field _translations table<string, table<string, table>> 言語とファイルごとの翻訳リソース. 形式: { [lang: string]: { [file_name: string]: JSON } }
 --- @field watch_handlers unknown[] ファイル監視ハンドラ
 --- @field config I18n.TranslationSourceConfig 設定
 local TranslationSource = {}
@@ -46,7 +46,7 @@ TranslationSource.__index = TranslationSource
 function TranslationSource.new(config)
   local self = setmetatable({}, TranslationSource)
 
-  self.translations = {}
+  self._translations = {}
   self.watch_handlers = {}
   self.config = config
   return self
@@ -65,7 +65,12 @@ function TranslationSource:start_watch(callback)
       async.wrap(TranslationSource.update_translation, 3)(self, file)
     end)
 
-    local handler = vim.uv.new_fs_poll()
+    local handler, err = vim.uv.new_fs_poll()
+    if err or handler == nil then
+      vim.notify_once("Error creating fs_poll: " .. err, vim.log.levels.ERROR)
+      return
+    end
+
     table.insert(self.watch_handlers, handler)
     vim.uv.fs_poll_start(handler, file, interval, function(err, _)
       if err then
@@ -101,6 +106,13 @@ function TranslationSource:start_watch(callback)
       callback()
     end
   end)
+end
+
+--- 特定言語の翻訳リソースを取得する
+--- @param lang string 言語
+--- @return table<string, table>
+function TranslationSource:get_translation_source_by_lang(lang)
+  return self._translations[lang] or {}
 end
 
 --- 文言ファイルの監視を停止する
@@ -155,10 +167,10 @@ function TranslationSource:update_translation(file, callback)
     end
 
     local lang = c.config.detect_language(file)
-    if self.translations[lang] == nil then
-      self.translations[lang] = {}
+    if self._translations[lang] == nil then
+      self._translations[lang] = {}
     end
-    self.translations[lang][file] = json
+    self._translations[lang][file] = json
 
     if callback then
       callback()
@@ -171,10 +183,6 @@ end
 --- @param key string | string[] キー
 --- @return any|string|nil
 function TranslationSource:get_translation(lang, key)
-  if self.translations[lang] == nil then
-    return nil
-  end
-
   --- @type string[]
   local key_array = {}
   if type(key) == "string" then
@@ -183,7 +191,7 @@ function TranslationSource:get_translation(lang, key)
     key_array = key
   end
 
-  for _, json in pairs(self.translations[lang]) do
+  for _, json in pairs(self:get_translation_source_by_lang(lang)) do
     local text = vim.tbl_get(json, unpack(key_array))
     if text then
       return text
@@ -194,7 +202,7 @@ end
 --- 利用可能な言語の一覧を取得する
 --- @return string[]
 function TranslationSource:get_available_languages()
-  return vim.fn.sort(vim.tbl_keys(self.translations))
+  return vim.fn.sort(vim.tbl_keys(self._translations))
 end
 
 M.TranslationSource = TranslationSource
