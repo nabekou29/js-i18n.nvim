@@ -159,12 +159,12 @@ function M.handler(params, callback, current_language, t_source_by_workspace)
 
   local key = (vim.treesitter.get_node_text(key_node, bufnr))
 
-  for file, _ in pairs(t_source.translations[lang]) do
+  for file, _ in pairs(t_source:get_translation_source_by_lang(lang)) do
     local bufnr = vim.api.nvim_create_buf(false, true)
     local content = Path:new(file):read()
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))
 
-    local node, err = get_node_for_key(bufnr, key)
+    local node = get_node_for_key(bufnr, key)
     if node ~= nil then
       local row_start, col_start, row_end, col_end = node:range()
       callback(nil, {

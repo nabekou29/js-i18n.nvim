@@ -26,7 +26,7 @@ local function handler(params, client)
 
   local key = vim.treesitter.get_node_text(key_node, bufnr)
 
-  for file, _ in pairs(t_source.translations[lang]) do
+  for file, _ in pairs(t_source:get_translation_source_by_lang(lang)) do
     local bufnr = vim.api.nvim_create_buf(false, true)
     local content = Path:new(file):read()
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))
