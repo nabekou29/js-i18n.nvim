@@ -100,6 +100,11 @@ i18n.setup = function(opts)
   vim.api.nvim_create_user_command("I18nVirtualTextToggle", function(_)
     client:toggle_virt_text()
   end, {})
+
+  --- 文言の編集
+  vim.api.nvim_create_user_command("I18nTranslationEdit", function(opts)
+    client:edit_translation()
+  end, {})
 end
 
 return i18n

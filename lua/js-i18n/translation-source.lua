@@ -1,4 +1,5 @@
 local c = require("js-i18n.config")
+local utils = require("js-i18n.utils")
 local Path = require("plenary.path")
 local scan = require("plenary.scandir")
 local async = require("plenary.async")
@@ -23,6 +24,36 @@ function M.get_translation_files(dir)
     })
   end
   return result
+end
+
+--- 文言の更新
+--- TODO: json ファイルの並び順やフォーマットを保持するようにしたい
+--- @param file string ファイルパス
+--- @param key string[] キー
+--- @param text string 文言
+function M.update_translation(file, key, text)
+  local path = Path:new(file)
+  local json_text, err = path:read()
+  if err or not json_text then
+    vim.notify("Cloud not read file" .. err, vim.log.levels.ERROR)
+    return
+  end
+
+  local ok, json = pcall(vim.fn.json_decode, json_text)
+  if not ok then
+    vim.notify("Cloud not decode json:" .. json, vim.log.levels.ERROR)
+    return
+  end
+
+  local err = utils.tbl_set(json, text, unpack(key))
+  if err then
+    vim.notify("Cloud not set json:" .. err, vim.log.levels.ERROR)
+    return
+  end
+
+  local new_json_text = vim.fn.json_encode(json)
+
+  path:write(new_json_text, "w")
 end
 
 ---- TranslationSource
@@ -180,21 +211,14 @@ end
 
 --- 文言の取得
 --- @param lang string 言語
---- @param key string | string[] キー
---- @return any|string|nil
+--- @param key string[] キー
+--- @return any|string|nil translation
+--- @return string|nil file
 function TranslationSource:get_translation(lang, key)
-  --- @type string[]
-  local key_array = {}
-  if type(key) == "string" then
-    key_array = { key }
-  else
-    key_array = key
-  end
-
-  for _, json in pairs(self:get_translation_source_by_lang(lang)) do
-    local text = vim.tbl_get(json, unpack(key_array))
+  for file, json in pairs(self:get_translation_source_by_lang(lang)) do
+    local text = vim.tbl_get(json, unpack(key))
     if text then
-      return text
+      return text, file
     end
   end
 end

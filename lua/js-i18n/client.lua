@@ -2,6 +2,7 @@ local translation_source = require("js-i18n.translation-source")
 local virt_text = require("js-i18n.virt_text")
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
+local lsp_utils = require("js-i18n.lsp.utils")
 
 --- ワークスペース内の TypeScript/JavaScript ファイルのバッファ番号を取得する
 local function get_workspace_bufs(workspace_dir)
@@ -123,6 +124,40 @@ end
 function Client:toggle_virt_text()
   self.enabled_virt_text = not self.enabled_virt_text
   self:update_virt_text_all_bufs()
+end
+
+--- 文言の編集
+--- TODO: 文言の入力、新規の場合はファイルの選択、言語の選択も
+function Client:edit_translation()
+  -- 現在のバッファとカーソルの位置を取得
+  local bufnr = vim.api.nvim_get_current_buf()
+  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+  local position = { line = row - 1, character = col }
+
+  local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, position)
+  if not ok or not key_node then
+    vim.notify("Key not found", vim.log.levels.ERROR)
+    return
+  end
+
+  local workspace_dir = utils.get_workspace_root(bufnr)
+  local ws_t_source = self.t_source_by_workspace[workspace_dir]
+  if ws_t_source == nil then
+    vim.notify("Translation source not found", vim.log.levels.ERROR)
+    return
+  end
+
+  local lang = self:get_language(bufnr)
+  local key = vim.treesitter.get_node_text(key_node, bufnr)
+  local split_key = vim.split(key, c.config.key_separator, { plain = true })
+
+  local _translation, file = ws_t_source:get_translation(lang, split_key)
+  if not file then
+    vim.notify("Translation source not found", vim.log.levels.ERROR)
+    return
+  end
+
+  translation_source.update_translation(file, split_key, "hoge")
 end
 
 return Client
