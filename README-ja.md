@@ -5,6 +5,12 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 > [!WARNING]
 > このプラグインはまだ開発中であり、開発者の利用ケースに最適化しています。
 
+## 必須条件
+
+- Neovim 0.10.0 以上 (0.10.0 未満では動作確認していません)
+- [jq](https://stedolan.github.io/jq/)
+  翻訳文言の編集に使用します。
+
 ## インストール
 
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
@@ -26,7 +32,7 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 
 - [x] 翻訳をバーチャルテキストとして表示
   - [x] (実験的) キーを隠して翻訳のみを表示する
-- [ ] 翻訳の編集
+- [x] 翻訳の編集
 - [x] モノレポ のサポート
 - LSP のサポート
   - [x] 翻訳リソースへの定義ジャンプ
@@ -46,13 +52,25 @@ i18next, react-i18next の高度な利用については、まだサポートし
 ### コマンド
 
 - `:I18nSetLang {lang}`
+
   言語を設定します。設定された言語はバーチャルテキストの表示や定義ジャンプに使用されます。
+
 - `:I18nVirtualTextEnable`
+
   バーチャルテキストの表示を有効にします。
+
 - `:I18nVirtualTextDisable`
+
   バーチャルテキストの表示を無効にします。
+
 - `:I18nVirtualTextToggle`
+
   バーチャルテキストの表示を切り替えます。
+
+- `:I18nEditTranslation [lang]`
+
+  カーソルがある位置の翻訳を編集します。キーにマッチする翻訳がない場合は、新しい翻訳を追加します。  
+  `lang` を省略した場合は、現在表示されている言語を使用します。
 
 ## 設定
 
@@ -67,6 +85,7 @@ i18next, react-i18next の高度な利用については、まだサポートし
   key_separator = ".", -- キーのセパレータ
   virt_text = {
     enabled = true, -- バーチャルテキストの表示を有効にする
+    format = ..., -- バーチャルテキストのフォーマット関数
     conceal_key = false, -- キーを隠して翻訳のみを表示する
     fallback = false, -- 選択中のバーチャルテキストが表示できない場合に
     max_length = 0, -- バーチャルテキストの最大長。0の場合は無制限。

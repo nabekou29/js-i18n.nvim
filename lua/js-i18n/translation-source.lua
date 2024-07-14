@@ -1,5 +1,4 @@
 local c = require("js-i18n.config")
-local utils = require("js-i18n.utils")
 local Path = require("plenary.path")
 local scan = require("plenary.scandir")
 local async = require("plenary.async")
@@ -27,33 +26,34 @@ function M.get_translation_files(dir)
 end
 
 --- 文言の更新
---- TODO: json ファイルの並び順やフォーマットを保持するようにしたい
 --- @param file string ファイルパス
 --- @param key string[] キー
 --- @param text string 文言
 function M.update_translation(file, key, text)
-  local path = Path:new(file)
-  local json_text, err = path:read()
-  if err or not json_text then
-    vim.notify("Cloud not read file" .. err, vim.log.levels.ERROR)
-    return
+  -- jq コマンドを使って json ファイルを追加 or 更新する
+  local key_str = vim
+    .iter(key)
+    :map(function(k)
+      return string.format('["%s"]', k)
+    end)
+    :join(".")
+
+  local cmd = string.format(
+    "jq '.%s = \"%s\"' %s > %s.tmp && mv %s.tmp %s",
+    key_str,
+    text,
+    file,
+    file,
+    file,
+    file
+  )
+
+  local output = vim.fn.system(cmd)
+  if output ~= "" and vim.v.shell_error ~= 0 then
+    vim.notify("Error updating translation:\n" .. output, vim.log.levels.ERROR)
+    -- tmp ファイルが残っているため削除
+    vim.fn.delete(file .. ".tmp")
   end
-
-  local ok, json = pcall(vim.fn.json_decode, json_text)
-  if not ok then
-    vim.notify("Cloud not decode json:" .. json, vim.log.levels.ERROR)
-    return
-  end
-
-  local err = utils.tbl_set(json, text, unpack(key))
-  if err then
-    vim.notify("Cloud not set json:" .. err, vim.log.levels.ERROR)
-    return
-  end
-
-  local new_json_text = vim.fn.json_encode(json)
-
-  path:write(new_json_text, "w")
 end
 
 ---- TranslationSource
@@ -149,7 +149,6 @@ end
 --- 文言ファイルの監視を停止する
 function TranslationSource:stop_watch()
   for _, handler in ipairs(self.watch_handlers) do
-    ---@diagnostic disable-next-line: undefined-field
     vim.uv.fs_poll_stop(handler)
   end
   self.watch_handles = {}
@@ -212,8 +211,8 @@ end
 --- 文言の取得
 --- @param lang string 言語
 --- @param key string[] キー
---- @return any|string|nil translation
---- @return string|nil file
+--- @return any|string|nil translation 文言
+--- @return string|nil file 文言リソース
 function TranslationSource:get_translation(lang, key)
   for file, json in pairs(self:get_translation_source_by_lang(lang)) do
     local text = vim.tbl_get(json, unpack(key))
