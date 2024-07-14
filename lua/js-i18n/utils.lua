@@ -66,7 +66,8 @@ end
 --- テーブルに値をセットする
 --- @param tbl table テーブル
 --- @param value any 値
---- @param ... string[] キー
+--- @param ... string キー
+--- @return string|nil error
 function M.tbl_set(tbl, value, ...)
   local keys = { ... }
 
@@ -77,12 +78,13 @@ function M.tbl_set(tbl, value, ...)
     else
       if tmp[key] == nil then
         tmp[key] = {}
+      elseif type(tmp[key]) ~= "table" then
+        local key_path = vim.fn.join(vim.list_slice(keys, 1, i), ".")
+        return "failed to set value (" .. key_path .. " is not a table)"
       end
       tmp = tmp[key]
     end
   end
-
-  return tbl
 end
 
 return M

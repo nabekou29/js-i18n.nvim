@@ -25,6 +25,37 @@ function M.get_translation_files(dir)
   return result
 end
 
+--- 文言の更新
+--- @param file string ファイルパス
+--- @param key string[] キー
+--- @param text string 文言
+function M.update_translation(file, key, text)
+  -- jq コマンドを使って json ファイルを追加 or 更新する
+  local key_str = vim
+    .iter(key)
+    :map(function(k)
+      return string.format('["%s"]', k)
+    end)
+    :join(".")
+
+  local cmd = string.format(
+    "jq '.%s = \"%s\"' %s > %s.tmp && mv %s.tmp %s",
+    key_str,
+    text,
+    file,
+    file,
+    file,
+    file
+  )
+
+  local output = vim.fn.system(cmd)
+  if output ~= "" and vim.v.shell_error ~= 0 then
+    vim.notify("Error updating translation:\n" .. output, vim.log.levels.ERROR)
+    -- tmp ファイルが残っているため削除
+    vim.fn.delete(file .. ".tmp")
+  end
+end
+
 ---- TranslationSource
 
 --- 翻訳リソースの管理をするクラス
@@ -118,7 +149,6 @@ end
 --- 文言ファイルの監視を停止する
 function TranslationSource:stop_watch()
   for _, handler in ipairs(self.watch_handlers) do
-    ---@diagnostic disable-next-line: undefined-field
     vim.uv.fs_poll_stop(handler)
   end
   self.watch_handles = {}
@@ -180,21 +210,14 @@ end
 
 --- 文言の取得
 --- @param lang string 言語
---- @param key string | string[] キー
---- @return any|string|nil
+--- @param key string[] キー
+--- @return any|string|nil translation 文言
+--- @return string|nil file 文言リソース
 function TranslationSource:get_translation(lang, key)
-  --- @type string[]
-  local key_array = {}
-  if type(key) == "string" then
-    key_array = { key }
-  else
-    key_array = key
-  end
-
-  for _, json in pairs(self:get_translation_source_by_lang(lang)) do
-    local text = vim.tbl_get(json, unpack(key_array))
+  for file, json in pairs(self:get_translation_source_by_lang(lang)) do
+    local text = vim.tbl_get(json, unpack(key))
     if text then
-      return text
+      return text, file
     end
   end
 end

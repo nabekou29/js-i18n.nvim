@@ -80,12 +80,8 @@ i18n.setup = function(opts)
     client:change_language(lang)
   end, {
     nargs = 1,
-    complete = function(arg_lead, cmd_line, cursor_pos)
-      return get_completion_available_languages(vim.tbl_values(client.t_source_by_workspace))(
-        arg_lead,
-        cmd_line,
-        cursor_pos
-      )
+    complete = function(...)
+      return get_completion_available_languages(vim.tbl_values(client.t_source_by_workspace))(...)
     end,
   })
   --- バーチャルテキストの有効化
@@ -100,6 +96,17 @@ i18n.setup = function(opts)
   vim.api.nvim_create_user_command("I18nVirtualTextToggle", function(_)
     client:toggle_virt_text()
   end, {})
+
+  --- 文言の編集
+  vim.api.nvim_create_user_command("I18nEditTranslation", function(opts)
+    local lang = opts.args
+    client:edit_translation(lang)
+  end, {
+    nargs = "?",
+    complete = function(...)
+      return get_completion_available_languages(vim.tbl_values(client.t_source_by_workspace))(...)
+    end,
+  })
 end
 
 return i18n
