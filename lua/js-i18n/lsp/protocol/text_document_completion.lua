@@ -6,6 +6,7 @@ local c = require("js-i18n.config")
 --- @param translation I18n.TranslationSource
 --- @param prefix? string
 --- @param result? table<string, string>
+--- @return table<string, string>
 local function get_all_translation(translation, prefix, result)
   result = result or {}
   for key, value in pairs(translation) do
@@ -28,8 +29,8 @@ local function get_completion_items(client, bufnr)
   local t_source = client.t_source_by_workspace[utils.get_workspace_root(bufnr)]
 
   local translations = {}
-  for _, source in pairs(t_source.translations[lang] or {}) do
-    for key, value in pairs(get_all_translation(source) or {}) do
+  for _, source in pairs(t_source:get_translation_source_by_lang(lang)) do
+    for key, value in pairs(get_all_translation(source)) do
       translations[key] = value
     end
   end
