@@ -36,6 +36,7 @@ end
 --- @param str string 文字列
 --- @param max_length number 最大長
 --- @param ellipsis_char? string 省略記号
+--- @return string
 function M.utf_truncate(str, max_length, ellipsis_char)
   ellipsis_char = ellipsis_char or ""
   local pos = vim.str_utf_pos(str)
@@ -43,6 +44,18 @@ function M.utf_truncate(str, max_length, ellipsis_char)
     return str
   end
   return str:sub(1, pos[max_length + 1] - 1) .. ellipsis_char
+end
+
+--- 翻訳文言の中の改行文字などをエスケープする
+--- @param str string
+--- @return string
+function M.escape_translation_text(str)
+  local escapes = {
+    ["\n"] = "\\n",
+    ["\r"] = "\\r",
+    ["\t"] = "\\t",
+  }
+  return (str:gsub(".", escapes))
 end
 
 --- Treesitter のノードから指定したタイプの親ノードを取得する

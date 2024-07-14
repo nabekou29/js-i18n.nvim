@@ -22,6 +22,7 @@ local function default_virt_text_format(text, opts)
     prefix = " : "
   end
 
+  text = utils.escape_translation_text(text)
   if opts.config.virt_text.max_length > 0 then
     text = utils.utf_truncate(text, opts.config.virt_text.max_length, "...")
   end
@@ -47,7 +48,7 @@ end
 --- @type I18n.Config
 local default_config = {
   primary_language = {},
-  translation_source = { "**/locales/*/translation.json" },
+  translation_source = { "**/locales/**/*.json" },
   detect_language = default_detect_language,
   key_separator = ".",
   virt_text = {
