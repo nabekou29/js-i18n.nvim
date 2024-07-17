@@ -177,7 +177,7 @@ function Client:edit_translation(lang)
     return
   end
 
-  local old_translation = utils.escape_translation_text(old_translation)
+  local old_translation = old_translation and utils.escape_translation_text(old_translation) or ""
   local translation = old_translation
   if old_translation then
     vim.ui.input({
