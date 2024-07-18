@@ -38,6 +38,9 @@ function M.update_translation(file, key, text)
     end)
     :join(".")
 
+  -- text に ' が含まれている場合はエスケープする
+  text = text:gsub("'", "'\"'\"'")
+
   local cmd = string.format(
     "jq '.%s = \"%s\"' %s > %s.tmp && mv %s.tmp %s",
     key_str,
