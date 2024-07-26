@@ -95,7 +95,7 @@ function Client:update_js_file_handler(bufnr)
     })
     self.t_source_by_workspace[workspace_dir]:start_watch()
 
-  -- ワークスペースが登録されている場合は、バーチャルテキストの更新を行う
+    -- ワークスペースが登録されている場合は、バーチャルテキストの更新を行う
   else
     self:update_virt_text(bufnr)
   end
@@ -158,6 +158,7 @@ function Client:edit_translation(lang)
 
   -- キーに一致する文言があれば編集、なければ追加
   local old_translation, file = ws_t_source:get_translation(lang, split_key)
+  local is_success = nil
   if not file then
     local sources = ws_t_source:get_translation_source_by_lang(lang)
     local files = vim.tbl_keys(sources)
@@ -185,12 +186,14 @@ function Client:edit_translation(lang)
       default = utils.escape_translation_text(old_translation),
     }, function(input)
       translation = input
+      is_success = translation_source.update_translation(file, split_key, translation)
     end)
   else
     vim.ui.input({
       prompt = "Add translation: ",
     }, function(input)
       translation = input
+      is_success = translation_source.update_translation(file, split_key, translation)
     end)
   end
 
@@ -199,7 +202,10 @@ function Client:edit_translation(lang)
   end
 
   vim.print("")
-  translation_source.update_translation(file, split_key, translation)
+  if not is_success then
+    vim.notify("Failed to update translation", vim.log.levels.ERROR)
+  end
+  -- translation_source.update_translation(file, split_key, translation)
 end
 
 return Client
