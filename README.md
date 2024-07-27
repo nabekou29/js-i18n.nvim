@@ -55,7 +55,7 @@ Advanced usage of i18next and react-i18next is not yet supported.
 
 ### Commands
 
-- `:I18nSetLang {lang}`
+- `:I18nSetLang [lang]`
 
   Sets the language. The set language is used for virtual text display and definition jumps.
 

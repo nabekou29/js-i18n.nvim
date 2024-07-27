@@ -79,7 +79,7 @@ i18n.setup = function(opts)
     local lang = opts.args
     client:change_language(lang)
   end, {
-    nargs = 1,
+    nargs = "?",
     complete = function(...)
       return get_completion_available_languages(vim.tbl_values(client.t_source_by_workspace))(...)
     end,
