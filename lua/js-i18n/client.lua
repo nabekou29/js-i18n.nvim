@@ -1,8 +1,13 @@
+local async = require("plenary.async")
+
 local translation_source = require("js-i18n.translation-source")
 local virt_text = require("js-i18n.virt_text")
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
 local lsp_utils = require("js-i18n.lsp.utils")
+
+local async_input = async.wrap(vim.ui.input, 2)
+local async_select = async.wrap(vim.ui.select, 3)
 
 --- ワークスペース内の TypeScript/JavaScript ファイルのバッファ番号を取得する
 local function get_workspace_bufs(workspace_dir)
@@ -102,10 +107,29 @@ function Client:update_js_file_handler(bufnr)
 end
 
 --- 言語を変更する
---- @param lang string 言語
+--- @param lang? string 言語
 function Client:change_language(lang)
-  self.current_language = lang
-  self:update_virt_text_all_bufs()
+  async.void(function()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local workspace_dir = utils.get_workspace_root(bufnr)
+    local ws_t_source = self.t_source_by_workspace[workspace_dir]
+
+    -- 言語が指定されていない場合は、現在表示している言語を取得
+    if not lang or #lang == 0 then
+      if ws_t_source == nil then
+        vim.notify("Translation source not found", vim.log.levels.ERROR)
+        return
+      end
+
+      local selected = async_select(ws_t_source:get_available_languages(), {
+        prompt = "Select language: ",
+      })
+      lang = selected
+    end
+
+    self.current_language = lang
+    self:update_virt_text_all_bufs()
+  end)()
 end
 
 --- バーチャルテキストの有効化
@@ -129,77 +153,75 @@ end
 --- 文言の編集
 --- @param lang? string 言語
 function Client:edit_translation(lang)
-  -- 現在のバッファとカーソルの位置を取得
-  local bufnr = vim.api.nvim_get_current_buf()
-  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-  local position = { line = row - 1, character = col }
+  async.void(function()
+    -- 現在のバッファとカーソルの位置を取得
+    local bufnr = vim.api.nvim_get_current_buf()
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local position = { line = row - 1, character = col }
 
-  -- 言語が指定されていない場合は、現在表示している言語を取得
-  if not lang or #lang == 0 then
-    lang = self:get_language(bufnr)
-  end
-
-  -- カーソル位置が t 関数の引数内にあるか確認
-  local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, position)
-  if not ok or not key_node then
-    vim.notify("Key not found", vim.log.levels.ERROR)
-    return
-  end
-  -- キーを取得
-  local key = vim.treesitter.get_node_text(key_node, bufnr)
-  local split_key = vim.split(key, c.config.key_separator, { plain = true })
-
-  local workspace_dir = utils.get_workspace_root(bufnr)
-  local ws_t_source = self.t_source_by_workspace[workspace_dir]
-  if ws_t_source == nil then
-    vim.notify("Translation source not found", vim.log.levels.ERROR)
-    return
-  end
-
-  -- キーに一致する文言があれば編集、なければ追加
-  local old_translation, file = ws_t_source:get_translation(lang, split_key)
-  if not file then
-    local sources = ws_t_source:get_translation_source_by_lang(lang)
-    local files = vim.tbl_keys(sources)
-    -- 文言ファイルが複数ある場合は、選択させる
-    if #files > 1 then
-      vim.ui.select(files, {
-        prompt = "Select translation file: ",
-      }, function(selected)
-        file = selected
-      end)
-    else
-      file = files[1]
+    -- 言語が指定されていない場合は、現在表示している言語を取得
+    if not lang or #lang == 0 then
+      lang = self:get_language(bufnr)
     end
-  end
 
-  if not file then
-    return
-  end
+    -- カーソル位置が t 関数の引数内にあるか確認
+    local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, position)
+    if not ok or not key_node then
+      vim.notify("Key not found", vim.log.levels.ERROR)
+      return
+    end
+    -- キーを取得
+    local key = vim.treesitter.get_node_text(key_node, bufnr)
+    local split_key = vim.split(key, c.config.key_separator, { plain = true })
 
-  local old_translation = old_translation and utils.escape_translation_text(old_translation) or ""
-  local translation = old_translation
-  if old_translation then
-    vim.ui.input({
-      prompt = "Edit translation: ",
-      default = utils.escape_translation_text(old_translation),
-    }, function(input)
+    local workspace_dir = utils.get_workspace_root(bufnr)
+    local ws_t_source = self.t_source_by_workspace[workspace_dir]
+    if ws_t_source == nil then
+      vim.notify("Translation source not found", vim.log.levels.ERROR)
+      return
+    end
+
+    -- キーに一致する文言があれば編集、なければ追加
+    local old_translation, file = ws_t_source:get_translation(lang, split_key)
+    if not file then
+      local sources = ws_t_source:get_translation_source_by_lang(lang)
+      local files = vim.tbl_keys(sources)
+      -- 文言ファイルが複数ある場合は、選択させる
+      if #files > 1 then
+        local selected = async_select(files, {
+          prompt = "Select translation file: ",
+        })
+        file = selected
+      else
+        file = files[1]
+      end
+    end
+
+    if not file then
+      return
+    end
+
+    local old_translation = old_translation and utils.escape_translation_text(old_translation) or ""
+    local translation = old_translation
+    if old_translation then
+      local input = async_input({
+        prompt = "Edit translation: ",
+        default = utils.escape_translation_text(old_translation),
+      })
       translation = input
-    end)
-  else
-    vim.ui.input({
-      prompt = "Add translation: ",
-    }, function(input)
+    else
+      local input = async_input({
+        prompt = "Add translation: ",
+      })
       translation = input
-    end)
-  end
+    end
 
-  if not translation or translation == old_translation then
-    return
-  end
+    if not translation or translation == old_translation then
+      return
+    end
 
-  vim.print("")
-  translation_source.update_translation(file, split_key, translation)
+    translation_source.update_translation(file, split_key, translation)
+  end)()
 end
 
 return Client
