@@ -114,7 +114,6 @@ function TranslationSource:start_watch(callback)
         return
       end
 
-      ---@diagnostic disable-next-line: redefined-local
       self:update_translation(file, function(err)
         if err then
           vim.schedule(function()
@@ -164,27 +163,22 @@ function TranslationSource:read_translation_file(file, callback)
   local path = Path:new(file)
 
   if not path:exists() then
-    vim.schedule(function()
-      callback("File not found", nil)
-    end)
+    callback("File not found", nil)
     return
   end
 
   local json, err = path:read()
   if err or not json then
-    vim.schedule(function()
-      callback("Cloud not read file" .. err, nil)
-    end)
+    callback("Cloud not read file" .. err, nil)
+    return
   end
 
-  vim.schedule(function()
-    local ok, result = pcall(vim.fn.json_decode, json)
-    if not ok then
-      callback("Cloud not decode json:" .. result, nil)
-    else
-      callback(nil, result)
-    end
-  end)
+  local ok, result = pcall(vim.fn.json_decode, json)
+  if not ok then
+    callback("Cloud not decode json:" .. result, nil)
+  else
+    callback(nil, result)
+  end
 end
 
 --- 文言ファイルの更新
