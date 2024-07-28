@@ -2,7 +2,7 @@
 test:
 	@echo "Running tests..."
 	nvim -l tests/busted.lua tests
-	rm -rf -v tests/.tmp_projects
+	rm -rfv tests/.tmp_projects
 
 .PHONY: clean-test
 clean-test:

@@ -20,6 +20,13 @@ M.teardown = function()
   _G._TEST = nil
 end
 
+--- プラグインをクリーンアップする
+M.clean_plugin = function()
+  -- プラグインの再読み込み
+  -- メッセージが表示されないように、:Lazy reload は使わず内部の関数を直接呼ぶ。
+  require("lazy.core.loader").reload("js-i18n.nvim")
+end
+
 local test_template_project_root_path = "tests/projects"
 local test_project_root_path = "tests/.tmp_projects"
 

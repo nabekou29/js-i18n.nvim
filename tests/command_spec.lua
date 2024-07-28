@@ -12,11 +12,12 @@ describe("Commands", function()
   end)
 
   before_each(function()
-    vim.cmd("Lazy reload js-i18n.nvim")
+    helper.clean_plugin()
     i18n = require("js-i18n")
   end)
 
   describe("I18nSetLang", function()
+    --- @type test.Project
     local project = nil
     before_each(function()
       project = helper.use_project("i18next")
@@ -66,23 +67,38 @@ describe("Commands", function()
       vim.cmd("bd!")
     end)
 
-    -- カーソル位置のキーに対して文言を更新できること
-    it("should update the text for the key at the cursor position", function()
-      -- Arrange
-      local input = stub(_G._test_async_ui, "input", "_new_translation")
+    -- stylua: ignore start
+    local tests = {
+      { t_func = "t",         key = "exists-key",   cursor = { 1, 3 },  input = "new_trans", expected = { ["exists-key"] = "new_trans" } },
+      { t_func = "t",         key = "new-key",      cursor = { 1, 3 },  input = "new_trans", expected = { ["new-key"] = "new_trans" } },
+      { t_func = "t",         key = "nested.key",   cursor = { 1, 3 },  input = "new_trans", expected = { ["nested"] = { ["key"] = "new_trans" } } },
+      { t_func = "t",         key = "special-char", cursor = { 1, 3 },  input = " -'\\\"\n", expected = { ["special-char"] = " -'\"\n" } },
+      { t_func = "i18next.t", key = "exists-key",   cursor = { 1, 10 }, input = "new_trans", expected = { ["exists-key"] = "new_trans" } },
+    }
+    -- stylua: ignore end
 
-      local bufnr = vim.api.nvim_get_current_buf()
-      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "t('exists-key')" })
-      vim.api.nvim_win_set_cursor(0, { 1, 3 })
+    for _, test in ipairs(tests) do
+      local word = test.t_func .. '("' .. test.key .. '")'
 
-      -- Act
-      vim.cmd("I18nEditTranslation ja")
+      -- 文言の編集ができること
+      it("should be able to edit the translation (" .. word .. ")", function()
+        -- Arrange
+        local input = stub(_G._test_async_ui, "input", test.input)
 
-      -- Assert
-      assert.stub(input).called(1)
-      local translations =
-        vim.fn.json_decode(vim.fn.readfile(project.path .. "/locales/ja/translation.json"))
-      assert.are.equal(translations["exists-key"], "_new_translation")
-    end)
+        local bufnr = vim.api.nvim_get_current_buf()
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { word })
+        vim.api.nvim_win_set_cursor(0, test.cursor)
+
+        -- Act
+        vim.cmd("I18nEditTranslation ja")
+
+        -- Assert
+        assert.stub(input).called(1)
+
+        local translations =
+          vim.fn.json_decode(vim.fn.readfile(project.path .. "/locales/ja/translation.json"))
+        assert.are_same(translations, vim.tbl_deep_extend("force", translations, test.expected))
+      end)
+    end
   end)
 end)
