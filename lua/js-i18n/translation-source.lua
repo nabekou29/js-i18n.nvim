@@ -34,7 +34,7 @@ function M.update_translation(file, key, text)
   local key_str = vim
     .iter(key)
     :map(function(k)
-      return string.format('["%s"]', k)
+      return string.format('"%s"', k)
     end)
     :join(".")
 
