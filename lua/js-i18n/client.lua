@@ -6,8 +6,14 @@ local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
 local lsp_utils = require("js-i18n.lsp.utils")
 
-local async_input = async.wrap(vim.ui.input, 2)
-local async_select = async.wrap(vim.ui.select, 3)
+local async_ui = {
+  input = async.wrap(vim.ui.input, 2),
+  select = async.wrap(vim.ui.select, 3),
+}
+
+if _TEST then
+  async_ui = _test_async_ui or async_ui
+end
 
 --- ワークスペース内の TypeScript/JavaScript ファイルのバッファ番号を取得する
 local function get_workspace_bufs(workspace_dir)
@@ -121,7 +127,7 @@ function Client:change_language(lang)
         return
       end
 
-      local selected = async_select(ws_t_source:get_available_languages(), {
+      local selected = async_ui.select(ws_t_source:get_available_languages(), {
         prompt = "Select language: ",
       })
       lang = selected
@@ -188,7 +194,7 @@ function Client:edit_translation(lang)
       local files = vim.tbl_keys(sources)
       -- 文言ファイルが複数ある場合は、選択させる
       if #files > 1 then
-        local selected = async_select(files, {
+        local selected = async_ui.select(files, {
           prompt = "Select translation file: ",
         })
         file = selected
@@ -204,13 +210,13 @@ function Client:edit_translation(lang)
     local old_translation = old_translation and utils.escape_translation_text(old_translation) or ""
     local translation = old_translation
     if old_translation then
-      local input = async_input({
+      local input = async_ui.input({
         prompt = "Edit translation: ",
         default = utils.escape_translation_text(old_translation),
       })
       translation = input
     else
-      local input = async_input({
+      local input = async_ui.input({
         prompt = "Add translation: ",
       })
       translation = input

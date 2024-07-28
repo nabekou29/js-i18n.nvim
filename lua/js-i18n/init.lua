@@ -26,6 +26,9 @@ local function get_completion_available_languages(translation_sources)
   end
 end
 
+--- @type I18n.Client
+i18n.client = nil
+
 --- setup
 --- @param opts I18n.Config
 i18n.setup = function(opts)
@@ -33,7 +36,7 @@ i18n.setup = function(opts)
   -- 設定の初期化
   c.setup(opts)
 
-  local client = Client.new()
+  i18n.client = Client.new()
 
   -- ファイルの変更などがあれば、バーチャルテキストを更新する
   vim.api.nvim_create_autocmd({
@@ -46,7 +49,7 @@ i18n.setup = function(opts)
     group = group,
     callback = function(ev)
       local bufnr = ev.buf
-      client:update_js_file_handler(bufnr)
+      i18n.client:update_js_file_handler(bufnr)
     end,
   })
   local lspconfig = require("lspconfig")
@@ -58,7 +61,7 @@ i18n.setup = function(opts)
         --- @param _dispatchers vim.lsp.rpc.Dispatchers
         --- @return vim.lsp.rpc.PublicClient
         cmd = function(_dispatchers)
-          return require("js-i18n.lsp").create_rpc(client)
+          return require("js-i18n.lsp").create_rpc(i18n.client)
         end,
         filetypes = {
           "javascript",
@@ -77,34 +80,38 @@ i18n.setup = function(opts)
   --- 言語の変更
   vim.api.nvim_create_user_command("I18nSetLang", function(opts)
     local lang = opts.args
-    client:change_language(lang)
+    i18n.client:change_language(lang)
   end, {
     nargs = "?",
     complete = function(...)
-      return get_completion_available_languages(vim.tbl_values(client.t_source_by_workspace))(...)
+      return get_completion_available_languages(vim.tbl_values(i18n.client.t_source_by_workspace))(
+        ...
+      )
     end,
   })
   --- バーチャルテキストの有効化
   vim.api.nvim_create_user_command("I18nVirtualTextEnable", function(_)
-    client:enable_virt_text()
+    i18n.client:enable_virt_text()
   end, {})
   --- バーチャルテキストの無効化
   vim.api.nvim_create_user_command("I18nVirtualTextDisable", function(_)
-    client:disable_virt_text()
+    i18n.client:disable_virt_text()
   end, {})
   --- バーチャルテキストの有効化/無効化を切り替える
   vim.api.nvim_create_user_command("I18nVirtualTextToggle", function(_)
-    client:toggle_virt_text()
+    i18n.client:toggle_virt_text()
   end, {})
 
   --- 文言の編集
   vim.api.nvim_create_user_command("I18nEditTranslation", function(opts)
     local lang = opts.args
-    client:edit_translation(lang)
+    i18n.client:edit_translation(lang)
   end, {
     nargs = "?",
     complete = function(...)
-      return get_completion_available_languages(vim.tbl_values(client.t_source_by_workspace))(...)
+      return get_completion_available_languages(vim.tbl_values(i18n.client.t_source_by_workspace))(
+        ...
+      )
     end,
   })
 end
