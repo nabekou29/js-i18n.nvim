@@ -1,0 +1,37 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    paths:
+      - ".github/workflows/test.yaml"
+      - "Makefile"
+      - "lua/**"
+      - "tests/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: plugins cache
+        uses: actions/cache@v4
+        with:
+          path: .tests
+          key: ${{ runner.os }}-plugins-${{ hashFiles('tests/busted.lua') }}
+
+      - name: setup neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: nightly
+
+      - name: run tests
+        run: make test

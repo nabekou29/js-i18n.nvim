@@ -34,7 +34,7 @@ function M.update_translation(file, key, text)
   local key_str = vim
     .iter(key)
     :map(function(k)
-      return string.format('["%s"]', k)
+      return string.format('"%s"', k)
     end)
     :join(".")
 
@@ -53,7 +53,7 @@ function M.update_translation(file, key, text)
 
   local output = vim.fn.system(cmd)
   if output ~= "" and vim.v.shell_error ~= 0 then
-    vim.notify("Error updating translation:\n" .. output, vim.log.levels.ERROR)
+    vim.notify("Error updating translation: " .. output, vim.log.levels.ERROR)
     -- tmp ファイルが残っているため削除
     vim.fn.delete(file .. ".tmp")
   end
