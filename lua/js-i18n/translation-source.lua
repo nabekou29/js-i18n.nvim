@@ -160,6 +160,13 @@ end
 --- @param file string ファイルパス
 --- @param callback fun(err: string | nil, json: table | nil) コールバック
 function TranslationSource:read_translation_file(file, callback)
+  if vim.in_fast_event() then
+    vim.schedule(function()
+      self:read_translation_file(file, callback)
+    end)
+    return
+  end
+
   local path = Path:new(file)
 
   if not path:exists() then
