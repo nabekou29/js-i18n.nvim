@@ -39,11 +39,48 @@ end
 --- @return string
 function M.utf_truncate(str, max_length, ellipsis_char)
   ellipsis_char = ellipsis_char or ""
-  local pos = vim.str_utf_pos(str)
-  if #pos <= max_length then
+
+  if vim.fn.strchars(str) <= max_length then
     return str
   end
-  return str:sub(1, pos[max_length + 1] - 1) .. ellipsis_char
+
+  local max_length_without_ellipsis = max_length - vim.fn.strchars(ellipsis_char)
+  return vim.fn.strcharpart(str, 0, max_length_without_ellipsis) .. ellipsis_char
+end
+
+--- 文字列を文字幅で切り詰める
+--- @param str string 文字列
+--- @param max_width number 最大幅
+--- @param ellipsis_char? string 省略記号
+--- @return string
+function M.truncate_display_width(str, max_width, ellipsis_char)
+  ellipsis_char = ellipsis_char or ""
+  local width = vim.fn.strdisplaywidth(str)
+  if width <= max_width then
+    return str
+  end
+
+  local ellipsis_char_width = vim.fn.strdisplaywidth(ellipsis_char)
+  local max_width_without_ellipsis = max_width - ellipsis_char_width
+
+  local truncated = ""
+  local current_width = 0
+  local i = 1
+
+  while current_width < max_width_without_ellipsis do
+    local char = vim.fn.strcharpart(str, i - 1, 1)
+    local char_width = vim.fn.strdisplaywidth(char)
+
+    if current_width + char_width > max_width_without_ellipsis then
+      break
+    end
+
+    truncated = truncated .. char
+    current_width = current_width + char_width
+    i = i + vim.fn.strchars(char)
+  end
+
+  return truncated .. ellipsis_char
 end
 
 --- 翻訳文言の中の改行文字などをエスケープする

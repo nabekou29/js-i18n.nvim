@@ -25,6 +25,8 @@ local function default_virt_text_format(text, opts)
   text = utils.escape_translation_text(text)
   if opts.config.virt_text.max_length > 0 then
     text = utils.utf_truncate(text, opts.config.virt_text.max_length, "...")
+  elseif opts.config.virt_text.max_width > 0 then
+    text = utils.truncate_display_width(text, opts.config.virt_text.max_width, "...")
   end
 
   return prefix .. text .. suffix
@@ -41,6 +43,7 @@ end
 --- @field enabled boolean バーチャルテキストを有効にするかどうか
 --- @field format fun(text: string, opts: I18n.VirtText.FormatOpts): string|string[][] バーチャルテキストのフォーマット関数
 --- @field max_length number バーチャルテキストの最大長 (0 の場合は無制限)
+--- @field max_width number バーチャルテキストの最大幅 (0 の場合は無制限)
 --- @field conceal_key boolean キーを隠すかどうか
 --- @field fallback boolean 選択中の言語にキーが存在しない場合に他の言語を表示するかどうか
 
@@ -57,6 +60,7 @@ local default_config = {
     conceal_key = false,
     fallback = false,
     max_length = 0,
+    max_width = 0,
   },
 }
 

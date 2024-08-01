@@ -21,16 +21,13 @@ describe("Commands", function()
     local project = nil
     before_each(function()
       project = helper.use_project("i18next")
-      -- 適当なファイルを開く
       vim.cmd("e " .. project.path .. "/index.js")
     end)
 
     after_each(function()
-      -- ファイルを閉じる
       vim.cmd("bd!")
     end)
 
-    -- 引数に渡された言語を設定できること
     it("should set the language passed as an argument", function()
       -- Act
       vim.cmd("I18nSetLang ja")
@@ -39,7 +36,6 @@ describe("Commands", function()
       assert.are.equal("ja", i18n.client.current_language)
     end)
 
-    -- 引数が未指定の場合はインタラクティブに言語を設定できること
     it("should interactively set the language if no argument is specified", function()
       -- Arrange
       local select = stub(_G._test_async_ui, "select", "ja")
@@ -58,12 +54,10 @@ describe("Commands", function()
     local project = nil
     before_each(function()
       project = helper.use_project("i18next")
-      -- 適当なファイルを開く
       vim.cmd("e " .. project.path .. "/index.js")
     end)
 
     after_each(function()
-      -- ファイルを閉じる
       vim.cmd("bd!")
     end)
 
@@ -80,7 +74,6 @@ describe("Commands", function()
     for _, test in ipairs(tests) do
       local word = test.t_func .. '("' .. test.key .. '")'
 
-      -- 文言の編集ができること
       it("should be able to edit the translation (" .. word .. ")", function()
         -- Arrange
         local input = stub(_G._test_async_ui, "input", test.input)
