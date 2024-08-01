@@ -91,6 +91,7 @@ The default settings are as follows. For omitted parts, refer to [config.lua](./
     conceal_key = false, -- Hide keys and display only translations
     fallback = false, -- Fallback if the selected virtual text cannot be displayed
     max_length = 0, -- Maximum length of virtual text. 0 means unlimited.
+    max_width = 0, -- Maximum width of virtual text. 0 means unlimited. (`max_length` takes precedence.)
   },
 }
 ```
