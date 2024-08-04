@@ -38,6 +38,7 @@ end
 --- @field detect_language fun(path: string): string ファイルパスから言語を検出する関数
 --- @field key_separator string キーのセパレータ
 --- @field virt_text I18n.VirtTextConfig バーチャルテキストの設定
+--- @field diagnostic I18n.Diagnostic 診断の設定
 
 --- @class I18n.VirtTextConfig
 --- @field enabled boolean バーチャルテキストを有効にするかどうか
@@ -46,6 +47,10 @@ end
 --- @field max_width number バーチャルテキストの最大幅 (0 の場合は無制限)
 --- @field conceal_key boolean キーを隠すかどうか
 --- @field fallback boolean 選択中の言語にキーが存在しない場合に他の言語を表示するかどうか
+
+--- @class I18n.Diagnostic
+--- @field enabled boolean diagnostics を有効にするかどうか
+--- @field severity number 診断の重要度
 
 --- デフォルト設定
 --- @type I18n.Config
@@ -61,6 +66,10 @@ local default_config = {
     fallback = false,
     max_length = 0,
     max_width = 0,
+  },
+  diagnostic = {
+    enabled = true,
+    severity = vim.diagnostic.severity.WARN,
   },
 }
 

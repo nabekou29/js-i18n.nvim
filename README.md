@@ -4,6 +4,9 @@ This file is translated by ChatGPT based on the original text.
 
 # js-i18n.nvim
 
+[![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
+[![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
+
 js-i18n.nvim is a Neovim plugin for the JavaScript library i18next.
 
 > [!WARNING]
@@ -42,6 +45,7 @@ js-i18n.nvim is a Neovim plugin for the JavaScript library i18next.
   - [x] Jump to definition of translation resources
   - [x] Key completion
   - [x] Display translations for each language on hover
+  - [x] Show error when a translation for the key is not found
 - Library Support
   - [x] i18next
   - [x] react-i18next
@@ -59,6 +63,11 @@ Advanced usage of i18next and react-i18next is not yet supported.
 
   Sets the language. The set language is used for virtual text display and definition jumps.
 
+- `:I18nEditTranslation [lang]`
+
+  Edits the translation at the cursor position. If there is no matching translation for the key, a new translation is added.  
+  If `lang` is omitted, the currently displayed language is used.
+
 - `:I18nVirtualTextEnable`
 
   Enables the display of virtual text.
@@ -71,10 +80,17 @@ Advanced usage of i18next and react-i18next is not yet supported.
 
   Toggles the display of virtual text.
 
-- `:I18nEditTranslation [lang]`
+- `:I18nDiagnosticEnable`
 
-  Edits the translation at the cursor position. If there is no matching translation for the key, a new translation is added.  
-  If `lang` is omitted, the currently displayed language is used.
+  Enables the display of diagnostic information.
+
+- `:I18nDiagnosticDisable`
+
+  Disables the display of diagnostic information.
+
+- `:I18nDiagnosticToggle`
+
+  Toggles the display of diagnostic information.
 
 ## Configuration
 
@@ -92,6 +108,10 @@ The default settings are as follows. For omitted parts, refer to [config.lua](./
     fallback = false, -- Fallback if the selected virtual text cannot be displayed
     max_length = 0, -- Maximum length of virtual text. 0 means unlimited.
     max_width = 0, -- Maximum width of virtual text. 0 means unlimited. (`max_length` takes precedence.)
+  },
+  diagnostic = {
+    enabled = true, -- Enable the display of diagnostic information
+    severity = vim.diagnostic.severity.WARN, -- Severity level of diagnostic information
   },
 }
 ```
