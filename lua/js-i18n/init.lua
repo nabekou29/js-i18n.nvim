@@ -58,10 +58,10 @@ i18n.setup = function(opts)
   if not lsp_configs.i18n_lsp then
     lsp_configs.i18n_lsp = {
       default_config = {
-        --- @param _dispatchers vim.lsp.rpc.Dispatchers
+        --- @param dispatchers vim.lsp.rpc.Dispatchers
         --- @return vim.lsp.rpc.PublicClient
-        cmd = function(_dispatchers)
-          return require("js-i18n.lsp").create_rpc(i18n.client)
+        cmd = function(dispatchers)
+          return require("js-i18n.lsp").create_rpc(dispatchers, i18n.client)
         end,
         filetypes = {
           "javascript",
@@ -100,6 +100,19 @@ i18n.setup = function(opts)
   --- バーチャルテキストの有効化/無効化を切り替える
   vim.api.nvim_create_user_command("I18nVirtualTextToggle", function(_)
     i18n.client:toggle_virt_text()
+  end, {})
+
+  --- diagnostic の有効化
+  vim.api.nvim_create_user_command("I18nDiagnosticEnable", function(_)
+    i18n.client:enable_diagnostic()
+  end, {})
+  --- diagnostic の無効化
+  vim.api.nvim_create_user_command("I18nDiagnosticDisable", function(_)
+    i18n.client:disable_diagnostic()
+  end, {})
+  --- diagnostic の有効化/無効化を切り替える
+  vim.api.nvim_create_user_command("I18nDiagnosticToggle", function(_)
+    i18n.client:toggle_diagnostic()
   end, {})
 
   --- 文言の編集

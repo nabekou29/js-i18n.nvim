@@ -30,7 +30,6 @@ end
 
 --- @class I18n.Client
 --- @field current_language string|nil 選択中の言語
---- @field enabled_virt_text boolean バーチャルテキストの有効化
 --- @field t_source_by_workspace table<string, I18n.TranslationSource> ワークスペースごとに翻訳ソースを管理する（モノレポ対応）
 local Client = {}
 Client.__index = Client
@@ -39,7 +38,6 @@ function Client.new()
   local self = setmetatable({}, Client)
 
   self.current_language = nil
-  self.enabled_virt_text = c.config.virt_text.enabled
   self.t_source_by_workspace = {}
 
   return self
@@ -64,7 +62,7 @@ end
 --- 対象のバッファでバーチャルテキストを更新する
 --- @param bufnr number バッファ番号
 function Client:update_virt_text(bufnr)
-  if not self.enabled_virt_text then
+  if not c.config.virt_text.enabled then
     virt_text.clear_extmarks(bufnr)
     return
   end
@@ -102,6 +100,10 @@ function Client:update_js_file_handler(bufnr)
         for _, bufnr in ipairs(get_workspace_bufs(workspace_dir)) do
           self:update_virt_text(bufnr)
         end
+        vim.api.nvim_exec_autocmds("User", {
+          pattern = "js_i18n/translation_source_updated",
+          data = {},
+        })
       end,
     })
     self.t_source_by_workspace[workspace_dir]:start_watch()
@@ -140,20 +142,47 @@ end
 
 --- バーチャルテキストの有効化
 function Client:enable_virt_text()
-  self.enabled_virt_text = true
+  c.config.virt_text.enabled = true
   self:update_virt_text_all_bufs()
 end
 
 --- バーチャルテキストの無効化
 function Client:disable_virt_text()
-  self.enabled_virt_text = false
+  c.config.virt_text.enabled = false
   self:update_virt_text_all_bufs()
 end
 
 --- バーチャルテキストの有効化/無効化を切り替える
 function Client:toggle_virt_text()
-  self.enabled_virt_text = not self.enabled_virt_text
+  c.config.virt_text.enabled = not c.config.virt_text.enabled
   self:update_virt_text_all_bufs()
+end
+
+--- diagnostic の有効化
+function Client:enable_diagnostic()
+  c.config.diagnostic.enabled = true
+  vim.api.nvim_exec_autocmds("User", {
+    pattern = "js_i18n/diagnostics_enabled_on",
+    data = {},
+  })
+end
+
+--- diagnostic の無効化
+function Client:disable_diagnostic()
+  c.config.diagnostic.enabled = false
+  vim.api.nvim_exec_autocmds("User", {
+    pattern = "js_i18n/diagnostics_enabled_off",
+    data = {},
+  })
+end
+
+--- diagnostic の有効化/無効化を切り替える
+function Client:toggle_diagnostic()
+  c.config.diagnostic.enabled = not c.config.diagnostic.enabled
+  vim.api.nvim_exec_autocmds("User", {
+    pattern = "js_i18n/diagnostics_enabled_toggle",
+    data = {},
+  })
 end
 
 --- 文言の編集

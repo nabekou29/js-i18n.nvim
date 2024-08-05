@@ -10,16 +10,25 @@ end
 --- @class I18n.lsp.ProtocolModule
 --- @field handler fun(params: any, client: I18n.Client): any , any
 
+--- @class I18n.lsp.NotifyProtocolModule
+--- @field handler fun(params: any, client: I18n.Client)
+
 --- Lsp のリクエストを処理するオブジェクトを作成
+--- @param dispatchers vim.lsp.rpc.Dispatchers
 --- @param client I18n.Client
 --- @return vim.lsp.rpc.PublicClient
-function M.create_rpc(client)
+function M.create_rpc(dispatchers, client)
+  local lsp_config = require("js-i18n.lsp.config")
+  lsp_config.dispatchers = dispatchers
+
+  require("js-i18n.lsp.autocmd").setup(client)
+
   --- @type vim.lsp.rpc.PublicClient
   local rpc = {
     request = function(method, params, callback, _notify_reply_callback)
       local protocol = camel_to_snake_case(method):gsub("/", "_")
 
-      local ok, module = pcall(require, "js-i18n.lsp.protocol." .. protocol)
+      local ok, module = pcall(require, "js-i18n.lsp.protocol.request." .. protocol)
       if not ok then
         return false
       end
@@ -34,8 +43,18 @@ function M.create_rpc(client)
       end
       return true
     end,
-    notify = function()
-      return false
+    notify = function(method, params)
+      -- return false
+      local protocol = camel_to_snake_case(method):gsub("/", "_")
+
+      local ok, module = pcall(require, "js-i18n.lsp.protocol.notify." .. protocol)
+      if not ok then
+        return false
+      end
+      --- @type I18n.lsp.NotifyProtocolModule
+      local protocol_module = module
+      protocol_module.handler(params, client)
+      return true
     end,
     is_closing = function()
       return false

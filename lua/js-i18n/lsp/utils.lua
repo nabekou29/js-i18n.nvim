@@ -122,4 +122,47 @@ function M.check_cursor_in_t_argument(bufnr, position)
   return true, key_node
 end
 
+--- バッファ内の翻訳のキーの一覧を取得する
+--- @param bufnr number バッファ番号
+--- @return TSNode[] key_node_list 翻訳のキーのノードのリスト
+function M.find_translation_key_node_list(bufnr)
+  local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
+  if not ok then
+    return {}
+  end
+
+  local tree = parser:parse()[1]
+  local root = tree:root()
+  local language = parser:lang()
+
+  if not vim.tbl_contains({ "javascript", "typescript", "jsx", "tsx" }, language) then
+    return {}
+  end
+
+  local query = vim.treesitter.query.parse(
+    language,
+    [[
+      (call_expression
+        function: [
+          (identifier)
+          (member_expression)
+        ] @t_func (#match? @t_func "^(i18next\.)?t$")
+        arguments: (arguments
+          (string
+            (string_fragment)? @str_frag
+          ) @str
+        )
+      )
+      ]]
+  )
+
+  local key_node_list = {}
+  for _, match in query:iter_matches(root, bufnr) do
+    local key_node = match[2]
+    table.insert(key_node_list, key_node)
+  end
+
+  return key_node_list
+end
+
 return M

@@ -1,5 +1,8 @@
 # js-i18n.nvim
 
+[![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
+[![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
+
 js-i18n.nvim は、JavaScript のライブラリである i18next のための Neovim プラグインです。
 
 > [!WARNING]
@@ -38,6 +41,7 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
   - [x] 翻訳リソースへの定義ジャンプ
   - [x] キーの補完
   - [x] ホバーによる各言語の翻訳の表示
+  - [x] キーに対応する翻訳が見つからない場合にエラーを表示
 - ライブラリのサポート
   - [x] i18next
   - [x] react-i18next
@@ -55,6 +59,11 @@ i18next, react-i18next の高度な利用については、まだサポートし
 
   言語を設定します。設定された言語はバーチャルテキストの表示や定義ジャンプに使用されます。
 
+- `:I18nEditTranslation [lang]`
+
+  カーソルがある位置の翻訳を編集します。キーにマッチする翻訳がない場合は、新しい翻訳を追加します。  
+  `lang` を省略した場合は、現在表示されている言語を使用します。
+
 - `:I18nVirtualTextEnable`
 
   バーチャルテキストの表示を有効にします。
@@ -67,10 +76,17 @@ i18next, react-i18next の高度な利用については、まだサポートし
 
   バーチャルテキストの表示を切り替えます。
 
-- `:I18nEditTranslation [lang]`
+- `:I18nDiagnosticEnable`
 
-  カーソルがある位置の翻訳を編集します。キーにマッチする翻訳がない場合は、新しい翻訳を追加します。  
-  `lang` を省略した場合は、現在表示されている言語を使用します。
+  診断情報の表示を有効にします。
+
+- `:I18nDiagnosticDisable`
+
+  診断情報の表示を無効にします。
+
+- `:I18nDiagnosticToggle`
+
+  診断情報の表示を切り替えます。
 
 ## 設定
 
@@ -90,6 +106,10 @@ i18next, react-i18next の高度な利用については、まだサポートし
     fallback = false, -- 選択中のバーチャルテキストが表示できない場合に
     max_length = 0, -- バーチャルテキストの最大長。0の場合は無制限。
     max_width = 0, -- バーチャルテキストの最大幅。0の場合は無制限。(`max_length` が優先されます。)
+  },
+    diagnostic = {
+    enabled = true, -- 診断情報の表示を有効にする
+    severity = vim.diagnostic.severity.WARN, -- 診断情報の重要度
   },
 }
 ```
