@@ -1,7 +1,11 @@
-# js-i18n.nvim
+<h1 align='center'>js-i18n.nvim</h1>
 
 [![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
 [![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/abcd728d-42d1-46d2-8d18-072102b1cf71" type="video/mp4" />
+</div>
 
 js-i18n.nvim は、JavaScript のライブラリである i18next のための Neovim プラグインです。
 
