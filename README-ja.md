@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="./README.md">English</a> | <b>日本語(原文|Orginal)</b>
+    <a href="./README.md">English</a> | <b>日本語(原文|Original)</b>
 </div>
 
 # 🌐 js-i18n.nvim
@@ -51,66 +51,26 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 }
 ```
 
-## ⚙️ 設定
-
----
-
-## 機能
-
-- [x] 翻訳をバーチャルテキストとして表示
-  - [x] (実験的) キーを隠して翻訳のみを表示する
-- [x] 翻訳の編集
-- [x] モノレポ のサポート
-- LSP のサポート
-  - [x] 翻訳リソースへの定義ジャンプ
-  - [x] キーの補完
-  - [x] ホバーによる各言語の翻訳の表示
-  - [x] キーに対応する翻訳が見つからない場合にエラーを表示
-- ライブラリのサポート
-  - [x] i18next
-  - [x] react-i18next
-- 翻訳リソースの形式
-  - [x] JSON
-  - [ ] YAML
-
-i18next, react-i18next の高度な利用については、まだサポートしていません。
-
-## 使い方
+## 📚 使い方
 
 ### コマンド
 
-- `:I18nSetLang [lang]`
+- `:I18nSetLang [lang]` - 言語を設定します。設定された言語はバーチャルテキストの表示や定義ジャンプに使用されます。
 
-  言語を設定します。設定された言語はバーチャルテキストの表示や定義ジャンプに使用されます。
-
-- `:I18nEditTranslation [lang]`
-
-  カーソルがある位置の翻訳を編集します。キーにマッチする翻訳がない場合は、新しい翻訳を追加します。  
+- `:I18nEditTranslation [lang]` - カーソルがある位置の翻訳を編集します。キーにマッチする翻訳がない場合は、新しい翻訳を追加します。  
   `lang` を省略した場合は、現在表示されている言語を使用します。
 
-- `:I18nVirtualTextEnable`
+- `:I18nVirtualTextEnable` - バーチャルテキストの表示を有効にします。
 
-  バーチャルテキストの表示を有効にします。
+- `:I18nVirtualTextDisable` - バーチャルテキストの表示を無効にします。
 
-- `:I18nVirtualTextDisable`
+- `:I18nVirtualTextToggle` - バーチャルテキストの表示を切り替えます。
 
-  バーチャルテキストの表示を無効にします。
+- `:I18nDiagnosticEnable` - 診断情報の表示を有効にします。
 
-- `:I18nVirtualTextToggle`
+- `:I18nDiagnosticDisable` - 診断情報の表示を無効にします。
 
-  バーチャルテキストの表示を切り替えます。
-
-- `:I18nDiagnosticEnable`
-
-  診断情報の表示を有効にします。
-
-- `:I18nDiagnosticDisable`
-
-  診断情報の表示を無効にします。
-
-- `:I18nDiagnosticToggle`
-
-  診断情報の表示を切り替えます。
+- `:I18nDiagnosticToggle` - 診断情報の表示を切り替えます。
 
 ## ⚙️ 設定
 
@@ -137,3 +97,18 @@ i18next, react-i18next の高度な利用については、まだサポートし
   },
 }
 ```
+
+## ⬆️ ロードマップ
+
+今後もいくつかの機能の追加を予定しています。
+
+- i18next のサポートの強化
+
+  react-i18next や、i18next の高度な利用についてもサポートする予定です。
+
+- i18next 以外のライブラリのサポート
+- 翻訳が不足している箇所のクイックフィックス
+
+## 📝 ライセンス
+
+[MIT](./LICENSE)
