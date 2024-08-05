@@ -75,7 +75,7 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 ## ⚙️ 設定
 
 デフォルトの設定は以下の通りです。
-省略されている箇所については、[config.lua](./lua/js-i18n/config.lua) を参照してください。
+完全な設定の一覧は [config.lua](./lua/js-i18n/config.lua) を参照してください。
 
 ```lua
 {
@@ -108,7 +108,3 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 
 - i18next 以外のライブラリのサポート
 - 翻訳が不足している箇所のクイックフィックス
-
-## 📝 ライセンス
-
-[MIT](./LICENSE)
