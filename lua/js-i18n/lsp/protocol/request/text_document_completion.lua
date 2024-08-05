@@ -41,6 +41,7 @@ local function get_completion_items(client, bufnr)
     table.insert(items, {
       label = key,
       detail = value,
+      sortText = key,
     })
   end
   return items

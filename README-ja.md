@@ -1,20 +1,40 @@
-# js-i18n.nvim
+<div align="center">
+    <a href="./README.md">English</a> | <b>日本語(原文|Original)</b>
+</div>
+
+# 🌐 js-i18n.nvim
 
 [![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
 [![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
 
 js-i18n.nvim は、JavaScript のライブラリである i18next のための Neovim プラグインです。
 
+<div>
+  <video src="https://github.com/user-attachments/assets/abcd728d-42d1-46d2-8d18-072102b1cf71" type="video/mp4" />
+</div>
+
+## ✨ 機能
+
+- 翻訳をバーチャルテキストとして表示
+- 翻訳の編集
+- 翻訳が不足している場合のエラー表示
+- 定義ジャンプ
+- ホバーによる翻訳の表示
+- キーの補完
+- モノレポ のサポート
+
+## 🚧 ステータス
+
 > [!WARNING]
 > このプラグインはまだ開発中であり、開発者の利用ケースに最適化しています。
 
-## 必須条件
+## ✅ 必須条件
 
 - Neovim 0.10.0 以上 (0.10.0 未満では動作確認していません)
 - [jq](https://stedolan.github.io/jq/)
   翻訳文言の編集に使用します。
 
-## インストール
+## 📦 インストール
 
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
@@ -31,67 +51,31 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 }
 ```
 
-## 機能
-
-- [x] 翻訳をバーチャルテキストとして表示
-  - [x] (実験的) キーを隠して翻訳のみを表示する
-- [x] 翻訳の編集
-- [x] モノレポ のサポート
-- LSP のサポート
-  - [x] 翻訳リソースへの定義ジャンプ
-  - [x] キーの補完
-  - [x] ホバーによる各言語の翻訳の表示
-  - [x] キーに対応する翻訳が見つからない場合にエラーを表示
-- ライブラリのサポート
-  - [x] i18next
-  - [x] react-i18next
-- 翻訳リソースの形式
-  - [x] JSON
-  - [ ] YAML
-
-i18next, react-i18next の高度な利用については、まだサポートしていません。
-
-## 使い方
+## 📚 使い方
 
 ### コマンド
 
-- `:I18nSetLang [lang]`
+- `:I18nSetLang [lang]` - 言語を設定します。設定された言語はバーチャルテキストの表示や定義ジャンプに使用されます。
 
-  言語を設定します。設定された言語はバーチャルテキストの表示や定義ジャンプに使用されます。
-
-- `:I18nEditTranslation [lang]`
-
-  カーソルがある位置の翻訳を編集します。キーにマッチする翻訳がない場合は、新しい翻訳を追加します。  
+- `:I18nEditTranslation [lang]` - カーソルがある位置の翻訳を編集します。キーにマッチする翻訳がない場合は、新しい翻訳を追加します。  
   `lang` を省略した場合は、現在表示されている言語を使用します。
 
-- `:I18nVirtualTextEnable`
+- `:I18nVirtualTextEnable` - バーチャルテキストの表示を有効にします。
 
-  バーチャルテキストの表示を有効にします。
+- `:I18nVirtualTextDisable` - バーチャルテキストの表示を無効にします。
 
-- `:I18nVirtualTextDisable`
+- `:I18nVirtualTextToggle` - バーチャルテキストの表示を切り替えます。
 
-  バーチャルテキストの表示を無効にします。
+- `:I18nDiagnosticEnable` - 診断情報の表示を有効にします。
 
-- `:I18nVirtualTextToggle`
+- `:I18nDiagnosticDisable` - 診断情報の表示を無効にします。
 
-  バーチャルテキストの表示を切り替えます。
+- `:I18nDiagnosticToggle` - 診断情報の表示を切り替えます。
 
-- `:I18nDiagnosticEnable`
-
-  診断情報の表示を有効にします。
-
-- `:I18nDiagnosticDisable`
-
-  診断情報の表示を無効にします。
-
-- `:I18nDiagnosticToggle`
-
-  診断情報の表示を切り替えます。
-
-## 設定
+## ⚙️ 設定
 
 デフォルトの設定は以下の通りです。
-省略されている箇所については、[config.lua](./lua/js-i18n/config.lua) を参照してください。
+完全な設定の一覧は [config.lua](./lua/js-i18n/config.lua) を参照してください。
 
 ```lua
 {
@@ -113,3 +97,14 @@ i18next, react-i18next の高度な利用については、まだサポートし
   },
 }
 ```
+
+## ⬆️ ロードマップ
+
+今後もいくつかの機能の追加を予定しています。
+
+- i18next のサポートの強化
+
+  react-i18next や、i18next の高度な利用についてもサポートする予定です。
+
+- i18next 以外のライブラリのサポート
+- 翻訳が不足している箇所のクイックフィックス

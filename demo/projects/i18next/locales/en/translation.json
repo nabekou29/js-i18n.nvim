@@ -1,0 +1,8 @@
+{
+  "title": "Hello, {{name}}!",
+  "description": {
+    "part-1": "This is a demo of js-i18next.nvim .",
+    "part-2": "You can check the text in each language by hovering.",
+    "part-3": "You can also use the completion."
+  }
+}
