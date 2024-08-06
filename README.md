@@ -1,10 +1,14 @@
 <div align="center">
-    <b>English</b> | <a href="./README-ja.md">日本語(原文|Original)</a>
+  <b>English</b> | <a href="./README-ja.md">日本語(原文|Original)</a>
 </div>
 
-This file is translated and updated by ChatGPT based on the original text.
+<br />
 
-# js-i18n.nvim
+_⚠︎ This file is translated and updated by ChatGPT based on the original text._
+
+<br />
+
+# 🌐 js-i18n.nvim
 
 [![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
 [![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
