@@ -11,8 +11,13 @@ function M.check(client, uri)
   local workspace_dir = utils.get_workspace_root(bufnr)
   local t_source = client.t_source_by_workspace[workspace_dir]
 
+  local dispatchers = require("js-i18n.lsp.config").dispatchers
+  if not dispatchers then
+    return
+  end
+
   if not c.config.diagnostic.enabled then
-    require("js-i18n.lsp.config").dispatchers.notification("textDocument/publishDiagnostics", {
+    dispatchers.notification("textDocument/publishDiagnostics", {
       uri = uri,
       diagnostics = {},
     })
@@ -57,7 +62,7 @@ function M.check(client, uri)
     end
   end
 
-  require("js-i18n.lsp.config").dispatchers.notification("textDocument/publishDiagnostics", {
+  dispatchers.notification("textDocument/publishDiagnostics", {
     uri = uri,
     diagnostics = diagnostics,
   })
