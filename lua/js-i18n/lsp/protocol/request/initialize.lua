@@ -17,6 +17,12 @@ local function handler(params, _client)
       definitionProvider = true,
       hoverProvider = true,
       completionProvider = {},
+      codeActionProvider = {},
+      executeCommandProvider = {
+        commands = {
+          "i18n.editTranslation",
+        },
+      },
     },
   }
   return nil, server_capabilities

@@ -48,6 +48,10 @@ function M.check(client, uri)
         severity = c.config.diagnostic.severity,
         source = "js-i18n",
         code = "missing-translation",
+        data = {
+          key = key,
+          missing_languages = missing_languages,
+        },
       }
       table.insert(diagnostics, diagnostic)
     end

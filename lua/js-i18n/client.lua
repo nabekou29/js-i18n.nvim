@@ -187,26 +187,35 @@ end
 
 --- 文言の編集
 --- @param lang? string 言語
-function Client:edit_translation(lang)
+--- @param key? string キー
+function Client:edit_translation(lang, key)
   async.void(function()
-    -- 現在のバッファとカーソルの位置を取得
     local bufnr = vim.api.nvim_get_current_buf()
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    local position = { line = row - 1, character = col }
 
     -- 言語が指定されていない場合は、現在表示している言語を取得
     if not lang or #lang == 0 then
       lang = self:get_language(bufnr)
     end
 
-    -- カーソル位置が t 関数の引数内にあるか確認
-    local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, position)
-    if not ok or not key_node then
+    local function get_key()
+      local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+      local position = { line = row - 1, character = col }
+
+      -- カーソル位置が t 関数の引数内にあるか確認
+      local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, position)
+      if not ok or not key_node then
+        return
+      end
+      -- キーを取得
+      return vim.treesitter.get_node_text(key_node, bufnr)
+    end
+
+    -- キーを取得
+    local key = key or get_key()
+    if not key then
       vim.notify("Key not found", vim.log.levels.ERROR)
       return
     end
-    -- キーを取得
-    local key = vim.treesitter.get_node_text(key_node, bufnr)
     local split_key = vim.split(key, c.config.key_separator, { plain = true })
 
     local workspace_dir = utils.get_workspace_root(bufnr)

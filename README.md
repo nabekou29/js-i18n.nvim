@@ -22,7 +22,7 @@ js-i18n.nvim is a Neovim plugin for the JavaScript library i18next.
 ## ✨ Features
 
 - Display translations as virtual text
-- Edit translations
+- Edit translations (via command or code action)
 - Show error when a translation for the key is not found
 - Jump to definition of translation resources
 - Display translations for each language on hover
@@ -108,8 +108,7 @@ The default settings are as follows. For omitted parts, refer to [config.lua](./
 We plan to add several features in the future.
 
 - Enhanced support for i18next
-
   - Planning to support advanced usage of i18next and react-i18next.
-
+    - `namespace` and `keySeparator` options support
+    - `Trans` component support
 - Support for libraries other than i18next
-- Quick fixes for missing translations
