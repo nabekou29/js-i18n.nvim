@@ -16,7 +16,7 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 ## ✨ 機能
 
 - 翻訳をバーチャルテキストとして表示
-- 翻訳の編集
+- 翻訳の編集 (コマンド or コードアクション)
 - 翻訳が不足している場合のエラー表示
 - 定義ジャンプ
 - ホバーによる翻訳の表示
@@ -91,7 +91,7 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
     max_length = 0, -- バーチャルテキストの最大長。0の場合は無制限。
     max_width = 0, -- バーチャルテキストの最大幅。0の場合は無制限。(`max_length` が優先されます。)
   },
-    diagnostic = {
+  diagnostic = {
     enabled = true, -- 診断情報の表示を有効にする
     severity = vim.diagnostic.severity.WARN, -- 診断情報の重要度
   },
@@ -103,8 +103,7 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 今後もいくつかの機能の追加を予定しています。
 
 - i18next のサポートの強化
-
-  react-i18next や、i18next の高度な利用についてもサポートする予定です。
-
+  - react-i18next や、i18next の高度な利用についてもサポートする予定です。
+    - `namespace` や `keyPrefix` のサポート
+    - `Trans` コンポーネントのサポート
 - i18next 以外のライブラリのサポート
-- 翻訳が不足している箇所のクイックフィックス

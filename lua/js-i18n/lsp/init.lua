@@ -44,7 +44,6 @@ function M.create_rpc(dispatchers, client)
       return true
     end,
     notify = function(method, params)
-      -- return false
       local protocol = camel_to_snake_case(method):gsub("/", "_")
 
       local ok, module = pcall(require, "js-i18n.lsp.protocol.notify." .. protocol)

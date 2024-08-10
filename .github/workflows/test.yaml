@@ -21,11 +21,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: get year month
+        id: get_date
+        run: echo "year_month=$(date +'%Y%m')" >> $GITHUB_OUTPUT
+
       - name: plugins cache
         uses: actions/cache@v4
         with:
           path: .tests
-          key: ${{ runner.os }}-plugins-${{ hashFiles('tests/busted.lua') }}
+          # 月に一度のキャッシュクリア
+          key: ${{ runner.os }}-plugins-${{ hashFiles('tests/busted.lua') }}-${{ steps.get_date.outputs.year_month }}
 
       - name: setup neovim
         uses: rhysd/action-setup-vim@v1

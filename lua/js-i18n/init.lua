@@ -75,7 +75,17 @@ i18n.setup = function(opts)
       },
     }
   end
-  lspconfig.i18n_lsp.setup({})
+  lspconfig.i18n_lsp.setup({
+    handlers = {
+      ["workspace/executeCommand"] = function(_err, _result, ctx)
+        if ctx.params.command == "i18n.editTranslation" then
+          local lang = ctx.params.arguments[1]
+          local key = ctx.params.arguments[2]
+          i18n.client:edit_translation(lang, key)
+        end
+      end,
+    },
+  })
 
   --- 言語の変更
   vim.api.nvim_create_user_command("I18nSetLang", function(opts)
