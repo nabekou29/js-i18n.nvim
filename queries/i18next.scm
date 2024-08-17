@@ -16,14 +16,14 @@
 )
 
 ;; t 関数呼び出し
-  (call_expression
-    function: [
-      (identifier)
-      (member_expression)
-    ] @t_func (#match? @t_func "^(i18next\.)?t$")
-    arguments: (arguments
-      (string
-        (string_fragment) @i18n.key
-      )
+(call_expression
+  function: [
+    (identifier)
+    (member_expression)
+  ] @t_func (#match? @t_func "^(i18next\.)?t$")
+  arguments: (arguments
+    (string
+      (string_fragment) @i18n.key
     )
-  ) @i18n.call_t
+  )
+) @i18n.call_t

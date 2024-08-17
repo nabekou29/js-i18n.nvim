@@ -1,5 +1,6 @@
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
+local ts = require("js-i18n.tree-sitter")
 
 local ns_id = vim.api.nvim_create_namespace("I18n")
 
@@ -43,51 +44,6 @@ local function get_translation(lang, key, t_source)
   return nil, nil
 end
 
---- t関数を含むノードを検索する
---- @param bufnr integer バッファ番号
---- @param start? integer 開始行
---- @param stop? integer 終了行
---- @return TSNode[][]
-local function find_call_t_expressions(bufnr, start, stop)
-  local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
-  if not ok then
-    return {}
-  end
-  local tree = parser:parse()[1]
-  local root_node = tree:root()
-  local language = parser:lang()
-
-  if not vim.tbl_contains({ "javascript", "typescript", "jsx", "tsx" }, language) then
-    return {}
-  end
-
-  local query = vim.treesitter.query.parse(
-    language,
-    [[
-      (call_expression
-        function: [
-          (identifier)
-          (member_expression)
-        ] @t_func (#match? @t_func "^(i18next\.)?t$")
-        arguments: (arguments
-          (string
-            (string_fragment) @str_frag
-          )
-        )
-      )
-    ]]
-  )
-
-  local t_nodes = {}
-  for _, match in query:iter_matches(root_node, bufnr, start, stop) do
-    local func = match[1]
-    local args = match[2]
-    table.insert(t_nodes, { func, args })
-  end
-
-  return t_nodes
-end
-
 --- バーチャルテキストを表示する
 --- @param bufnr integer バッファ番号
 --- @param current_language string 言語
@@ -99,11 +55,15 @@ function M.set_extmark(bufnr, current_language, t_source)
 
   M.clear_extmarks(bufnr)
 
-  local t_nodes = find_call_t_expressions(bufnr)
-  for _, t_node in ipairs(t_nodes) do
-    local key_node = t_node[2]
+  local t_calls = ts.find_call_t_expressions(bufnr, c.query_dir .. "/i18next.scm")
 
-    local key = vim.treesitter.get_node_text(key_node, bufnr)
+  for _, t_call in ipairs(t_calls) do
+    local key_node = t_call.key_node
+    local key = t_call.key
+
+    if t_call.key_prefix ~= nil and t_call.key_prefix ~= "" then
+      key = t_call.key_prefix .. c.config.key_separator .. key
+    end
 
     local text, lang = get_translation(current_language, key, t_source)
     if text == nil or lang == nil then

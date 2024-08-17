@@ -51,7 +51,7 @@ end
 --- @param target_node TSNode t関数取得のノード
 --- @param bufnr integer バッファ番号
 --- @param query vim.treesitter.Query クエリ
---- @return GetTDetail
+--- @return GetTDetail|nil
 local function parse_get_t(target_node, bufnr, query)
   local namespace = ""
   local key_prefix = ""
@@ -68,6 +68,10 @@ local function parse_get_t(target_node, bufnr, query)
 
   local scope_node = M.find_closest_node(target_node, "statement_block")
 
+  if scope_node == nil then
+    return nil
+  end
+
   return {
     namespace = namespace,
     key_prefix = key_prefix,
@@ -77,6 +81,7 @@ end
 
 --- @class CallTDetail
 --- @field key string
+--- @field key_node TSNode
 --- @field namespace? string
 --- @field key_prefix? string
 
@@ -84,9 +89,10 @@ end
 --- @param target_node TSNode t関数呼び出しのノード
 --- @param bufnr integer バッファ番号
 --- @param query vim.treesitter.Query クエリ
---- @return CallTDetail
+--- @return CallTDetail|nil
 local function parse_call_t(target_node, bufnr, query)
   local key = nil
+  local key_node = nil
   local namespace = nil
   local key_prefix = nil
 
@@ -95,6 +101,7 @@ local function parse_call_t(target_node, bufnr, query)
 
     if name == "i18n.key" then
       key = vim.treesitter.get_node_text(node, bufnr)
+      key_node = node
     elseif name == "i18n.namespace" then
       namespace = vim.treesitter.get_node_text(node, bufnr)
     elseif name == "i18n.key_prefix" then
@@ -102,8 +109,13 @@ local function parse_call_t(target_node, bufnr, query)
     end
   end
 
+  if key == nil or key_node == nil then
+    return nil
+  end
+
   return {
     key = key,
+    key_node = key_node,
     namespace = namespace,
     key_prefix = key_prefix,
   }
@@ -112,6 +124,7 @@ end
 --- @class FindTExpressionResultItem
 --- @field node TSNode
 --- @field key string
+--- @field key_node TSNode
 --- @field namespace? string
 --- @field key_prefix? string
 
@@ -145,6 +158,7 @@ function M.find_call_t_expressions(bufnr, query_file, start, stop)
   --- @type GetTDetail[]
   local scope_stack = {}
 
+  --- @param value GetTDetail
   local function enter_scope(value)
     table.insert(scope_stack, value)
   end
@@ -170,7 +184,9 @@ function M.find_call_t_expressions(bufnr, query_file, start, stop)
 
     if name == "i18n.get_t" then
       local get_t_detail = parse_get_t(node, bufnr, query)
-      enter_scope(get_t_detail)
+      if get_t_detail then
+        enter_scope(get_t_detail)
+      end
     else
       -- 現在のスコープから抜けたかどうかを判定する
       local current_scope_node = current_scope().scope_node
@@ -181,13 +197,15 @@ function M.find_call_t_expressions(bufnr, query_file, start, stop)
       if name == "i18n.call_t" then
         local scope = current_scope()
         local call_t_detail = parse_call_t(node, bufnr, query)
-
-        table.insert(result, {
-          node = node,
-          key = call_t_detail.key,
-          namespace = call_t_detail.namespace or scope.namespace,
-          key_prefix = call_t_detail.key_prefix or scope.key_prefix,
-        })
+        if call_t_detail then
+          table.insert(result, {
+            node = node,
+            key_node = call_t_detail.key_node,
+            key = call_t_detail.key,
+            namespace = call_t_detail.namespace or scope.namespace,
+            key_prefix = call_t_detail.key_prefix or scope.key_prefix,
+          })
+        end
       end
     end
   end

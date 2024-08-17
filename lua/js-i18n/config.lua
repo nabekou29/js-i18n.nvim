@@ -2,6 +2,8 @@ local utils = require("js-i18n.utils")
 
 local M = {}
 
+M.query_dir = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h:h:h") .. "/queries"
+
 --- ファイルパスから言語を検出する
 --- @param path string ファイルパス
 local function default_detect_language(path)
