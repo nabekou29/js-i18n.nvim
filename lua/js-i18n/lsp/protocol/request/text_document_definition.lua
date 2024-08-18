@@ -1,6 +1,6 @@
 local utils = require("js-i18n.utils")
+local ts = require("js-i18n.tree-sitter")
 local c = require("js-i18n.config")
-local lsp_utils = require("js-i18n.lsp.utils")
 local Path = require("plenary.path")
 
 --- ハンドラ
@@ -19,12 +19,12 @@ local function handler(params, client)
     t_source:get_available_languages()
   )
 
-  local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, params.position)
-  if not ok or not key_node then
+  local ok, t_call = ts.check_cursor_in_t_argument(bufnr, params.position)
+  if not ok or not t_call then
     return nil, nil
   end
 
-  local key = vim.treesitter.get_node_text(key_node, bufnr)
+  local key = t_call.key
 
   for file, _ in pairs(t_source:get_translation_source_by_lang(lang)) do
     local bufnr = vim.api.nvim_create_buf(false, true)
@@ -32,7 +32,7 @@ local function handler(params, client)
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))
 
     local keys = vim.split(key, c.config.key_separator, { plain = true })
-    local node = lsp_utils.get_node_for_key(bufnr, keys)
+    local node = ts.get_node_for_key(bufnr, keys)
     vim.api.nvim_buf_delete(bufnr, { force = true })
 
     if node ~= nil then

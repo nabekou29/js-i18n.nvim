@@ -1,3 +1,5 @@
+local c = require("js-i18n.config")
+
 local M = {}
 
 --- ファイルからクエリを読み込む
@@ -42,10 +44,74 @@ function M.find_closest_node(node, type_)
   return nil
 end
 
+--- ノードの深さを計算する関数
+--- @param node TSNode
+local function calculate_node_depth(node)
+  local depth = 0
+  local parent = node:parent()
+  while parent ~= nil do
+    depth = depth + 1
+    parent = parent:parent()
+  end
+
+  return depth
+end
+
+--- Treesitterパーサーをセットアップしてキーにマッチするノードを取得する関数
+--- @param bufnr number 文言ファイルのバッファ番号
+--- @param keys string[] キー
+--- @param start? integer 開始位置
+--- @param stop? integer 終了位置
+--- @return TSNode | nil, string | nil
+function M.get_node_for_key(bufnr, keys, start, stop)
+  local key = table.concat(keys, c.config.key_separator)
+  local ts = vim.treesitter
+
+  local parser = ts.get_parser(bufnr, "json")
+  local tree = parser:parse()[1]
+  local root = tree:root()
+
+  local query =
+    ts.query.parse("json", '(pair key: (string) @key (#eq? @key "\\"' .. keys[1] .. '\\""))')
+
+  --- @type TSNode[]
+  local match_nodes = {}
+
+  for _, match, _ in query:iter_matches(root, bufnr, start, stop) do
+    for _, node in ipairs(match) do
+      table.insert(match_nodes, node)
+    end
+  end
+
+  --- @type TSNode
+  local node = vim
+    .iter(match_nodes)
+    -- find min depth
+    :fold(match_nodes[1], function(acc, node)
+      if calculate_node_depth(node) < calculate_node_depth(acc) then
+        return node
+      else
+        return acc
+      end
+    end)
+
+  if #keys == 1 then
+    return node, nil
+  elseif node ~= nil then
+    table.remove(keys, 1)
+    local parent = node:parent()
+    if parent ~= nil then
+      return M.get_node_for_key(bufnr, keys, parent:start(), parent:end_())
+    end
+  end
+
+  return nil, "Key not found: " .. key
+end
+
 --- @class GetTDetail
 --- @field namespace string
 --- @field key_prefix string
---- @field scope_node TSNode
+--- @field scope_node TSNode|nil
 
 --- t関数の取得に関する情報を解析する
 --- @param target_node TSNode t関数取得のノード
@@ -68,10 +134,6 @@ local function parse_get_t(target_node, bufnr, query)
 
   local scope_node = M.find_closest_node(target_node, "statement_block")
 
-  if scope_node == nil then
-    return nil
-  end
-
   return {
     namespace = namespace,
     key_prefix = key_prefix,
@@ -82,6 +144,7 @@ end
 --- @class CallTDetail
 --- @field key string
 --- @field key_node TSNode
+--- @field key_arg_node TSNode
 --- @field namespace? string
 --- @field key_prefix? string
 
@@ -93,6 +156,7 @@ end
 local function parse_call_t(target_node, bufnr, query)
   local key = nil
   local key_node = nil
+  local key_arg_node = nil
   local namespace = nil
   local key_prefix = nil
 
@@ -102,6 +166,8 @@ local function parse_call_t(target_node, bufnr, query)
     if name == "i18n.key" then
       key = vim.treesitter.get_node_text(node, bufnr)
       key_node = node
+    elseif name == "i18n.key_arg" then
+      key_arg_node = node
     elseif name == "i18n.namespace" then
       namespace = vim.treesitter.get_node_text(node, bufnr)
     elseif name == "i18n.key_prefix" then
@@ -116,25 +182,25 @@ local function parse_call_t(target_node, bufnr, query)
   return {
     key = key,
     key_node = key_node,
+    key_arg_node = key_arg_node,
     namespace = namespace,
     key_prefix = key_prefix,
   }
 end
 
 --- @class FindTExpressionResultItem
---- @field node TSNode
---- @field key string
---- @field key_node TSNode
---- @field namespace? string
---- @field key_prefix? string
+--- @field node TSNode t関数のノード
+--- @field key_node TSNode t関数のキーのノード
+--- @field key_arg_node TSNode t関数の引数のノード
+--- @field key string キー
+--- @field key_prefix? string キーのプレフィックス
+--- @field key_arg string t 関数の元のキー
+--- @field namespace? string t 関数の namespace
 
 --- t関数を含むノードを検索する
 --- @param bufnr integer バッファ番号
---- @param query_file string クエリファイル
---- @param start? integer 開始行
---- @param stop? integer 終了行
 --- @return FindTExpressionResultItem[]
-function M.find_call_t_expressions(bufnr, query_file, start, stop)
+function M.find_call_t_expressions(bufnr)
   local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
   if not ok then
     return {}
@@ -147,7 +213,7 @@ function M.find_call_t_expressions(bufnr, query_file, start, stop)
     return {}
   end
 
-  local query_str = M.load_query_from_file(query_file)
+  local query_str = M.load_query_from_file(c.query_dir .. "/i18next.scm")
 
   if type(query_str) ~= "string" then
     return {}
@@ -179,7 +245,7 @@ function M.find_call_t_expressions(bufnr, query_file, start, stop)
   --- @type FindTExpressionResultItem[]
   local result = {}
 
-  for id, node, _ in query:iter_captures(root_node, bufnr, start, stop) do
+  for id, node, _ in query:iter_captures(root_node, bufnr) do
     local name = query.captures[id]
 
     if name == "i18n.get_t" then
@@ -189,7 +255,7 @@ function M.find_call_t_expressions(bufnr, query_file, start, stop)
       end
     else
       -- 現在のスコープから抜けたかどうかを判定する
-      local current_scope_node = current_scope().scope_node
+      local current_scope_node = current_scope().scope_node or root_node
       if node:start() > current_scope_node:end_() or node:end_() < current_scope_node:start() then
         leave_scope()
       end
@@ -197,20 +263,50 @@ function M.find_call_t_expressions(bufnr, query_file, start, stop)
       if name == "i18n.call_t" then
         local scope = current_scope()
         local call_t_detail = parse_call_t(node, bufnr, query)
-        if call_t_detail then
-          table.insert(result, {
-            node = node,
-            key_node = call_t_detail.key_node,
-            key = call_t_detail.key,
-            namespace = call_t_detail.namespace or scope.namespace,
-            key_prefix = call_t_detail.key_prefix or scope.key_prefix,
-          })
+
+        if call_t_detail == nil then
+          goto continue
         end
+
+        local key_prefix = call_t_detail.key_prefix or scope.key_prefix
+        local key = call_t_detail.key
+        if key_prefix ~= "" then
+          key = key_prefix .. c.config.key_separator .. key
+        end
+
+        table.insert(result, {
+          node = node,
+          key_node = call_t_detail.key_node,
+          key_arg_node = call_t_detail.key_arg_node,
+          key = key,
+          key_prefix = key_prefix,
+          key_arg = call_t_detail.key,
+          namespace = call_t_detail.namespace or scope.namespace,
+        })
       end
     end
+    ::continue::
   end
 
   return result
+end
+
+--- カーソルの位置が t 関数の引数内にあるかどうかを判定する関数
+--- @param bufnr number バッファ番号
+--- @param position lsp.Position カーソルの位置
+--- @return boolean ok カーソルが t 関数の引数内にあるかどうか
+--- @return FindTExpressionResultItem | nil result カーソルが t 関数の引数内にある場合は t 関数の情報
+function M.check_cursor_in_t_argument(bufnr, position)
+  local t_calls = M.find_call_t_expressions(bufnr)
+
+  for _, t_call in ipairs(t_calls) do
+    local key_arg_node = t_call.key_arg_node
+    if vim.treesitter.is_in_node_range(key_arg_node, position.line, position.character) then
+      return true, t_call
+    end
+  end
+
+  return false, nil
 end
 
 return M

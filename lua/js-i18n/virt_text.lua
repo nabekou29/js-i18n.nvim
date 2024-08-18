@@ -55,24 +55,19 @@ function M.set_extmark(bufnr, current_language, t_source)
 
   M.clear_extmarks(bufnr)
 
-  local t_calls = ts.find_call_t_expressions(bufnr, c.query_dir .. "/i18next.scm")
+  local t_calls = ts.find_call_t_expressions(bufnr)
 
   for _, t_call in ipairs(t_calls) do
     local key_node = t_call.key_node
-    local key = t_call.key
 
-    if t_call.key_prefix ~= nil and t_call.key_prefix ~= "" then
-      key = t_call.key_prefix .. c.config.key_separator .. key
-    end
-
-    local text, lang = get_translation(current_language, key, t_source)
+    local text, lang = get_translation(current_language, t_call.key, t_source)
     if text == nil or lang == nil then
       goto continue
     end
 
     local key_row_start, key_col_start, key_row_end, key_col_end = key_node:range()
     local virt_text = c.config.virt_text.format(text, {
-      key = key,
+      key = t_call.key,
       lang = lang,
       current_language = current_language,
       config = c.config,
@@ -96,7 +91,7 @@ function M.set_extmark(bufnr, current_language, t_source)
       })
     end
 
-    vim.api.nvim_buf_set_extmark(bufnr, ns_id, key_row_start, key_col_start + #key + 1, {
+    vim.api.nvim_buf_set_extmark(bufnr, ns_id, key_row_start, key_col_start + #t_call.key_arg + 1, {
       virt_text = virt_text,
       virt_text_pos = "inline",
     })

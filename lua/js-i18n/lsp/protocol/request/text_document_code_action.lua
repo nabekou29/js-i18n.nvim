@@ -1,5 +1,5 @@
 local utils = require("js-i18n.utils")
-local lsp_utils = require("js-i18n.lsp.utils")
+local ts = require("js-i18n.tree-sitter")
 
 --- @class LanguageForCodeAction
 --- @field value string
@@ -64,12 +64,12 @@ local function handler(params, client)
 
   -- カーソル位置にあるキーの翻訳を編集するアクション
   local bufnr = vim.uri_to_bufnr(params.textDocument.uri)
-  local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, {
+  local ok, t_call = ts.check_cursor_in_t_argument(bufnr, {
     line = params.range.start.line,
     character = params.range.start.character,
   })
-  if ok and key_node then
-    local key = vim.treesitter.get_node_text(key_node, bufnr)
+  if ok and t_call then
+    local key = t_call.key
     for _, lang in ipairs(languages) do
       --- @type lsp.Command
       local command = {

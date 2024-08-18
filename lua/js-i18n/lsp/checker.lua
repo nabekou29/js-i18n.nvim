@@ -1,6 +1,6 @@
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
-local lsp_utils = require("js-i18n.lsp.utils")
+local ts = require("js-i18n.tree-sitter")
 
 local M = {}
 
@@ -27,9 +27,9 @@ function M.check(client, uri)
   --- @type lsp.Diagnostic[]
   local diagnostics = {}
 
-  local nodes = lsp_utils.find_translation_key_node_list(bufnr)
-  for _, key_node in ipairs(nodes) do
-    local key = vim.treesitter.get_node_text(key_node, bufnr)
+  local t_calls = ts.find_call_t_expressions(bufnr)
+  for _, t_call in ipairs(t_calls) do
+    local key = t_call.key
     local keys = vim.split(key, c.config.key_separator, { plain = true })
 
     local missing_languages = {}
@@ -42,7 +42,7 @@ function M.check(client, uri)
     end
 
     if #missing_languages > 0 then
-      local row_start, col_start, row_end, col_end = key_node:range()
+      local row_start, col_start, row_end, col_end = t_call.key_node:range()
       --- @type lsp.Diagnostic
       local diagnostic = {
         range = {
