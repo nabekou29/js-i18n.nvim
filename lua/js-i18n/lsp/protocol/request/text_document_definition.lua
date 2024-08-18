@@ -1,5 +1,5 @@
 local utils = require("js-i18n.utils")
-local ts = require("js-i18n.tree-sitter")
+local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
 local Path = require("plenary.path")
 
@@ -19,7 +19,7 @@ local function handler(params, client)
     t_source:get_available_languages()
   )
 
-  local ok, t_call = ts.check_cursor_in_t_argument(bufnr, params.position)
+  local ok, t_call = analyzer.check_cursor_in_t_argument(bufnr, params.position)
   if not ok or not t_call then
     return nil, nil
   end
@@ -32,7 +32,7 @@ local function handler(params, client)
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))
 
     local keys = vim.split(key, c.config.key_separator, { plain = true })
-    local node = ts.get_node_for_key(bufnr, keys)
+    local node = analyzer.get_node_for_key(bufnr, keys)
     vim.api.nvim_buf_delete(bufnr, { force = true })
 
     if node ~= nil then

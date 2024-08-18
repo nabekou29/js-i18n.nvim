@@ -1,5 +1,5 @@
 local utils = require("js-i18n.utils")
-local ts = require("js-i18n.tree-sitter")
+local analyzer = require("js-i18n.analyzer")
 
 --- @class LanguageForCodeAction
 --- @field value string
@@ -64,7 +64,7 @@ local function handler(params, client)
 
   -- カーソル位置にあるキーの翻訳を編集するアクション
   local bufnr = vim.uri_to_bufnr(params.textDocument.uri)
-  local ok, t_call = ts.check_cursor_in_t_argument(bufnr, {
+  local ok, t_call = analyzer.check_cursor_in_t_argument(bufnr, {
     line = params.range.start.line,
     character = params.range.start.character,
   })

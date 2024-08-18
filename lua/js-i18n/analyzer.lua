@@ -1,6 +1,14 @@
 local c = require("js-i18n.config")
+local utils = require("js-i18n.utils")
 
 local M = {}
+
+local query_dir = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h:h:h") .. "/queries"
+
+local library_query = {
+  [utils.Library.I18Next] = query_dir .. "/i18next.scm",
+  [utils.Library.NextIntl] = query_dir .. "/next-intl.scm",
+}
 
 --- ファイルからクエリを読み込む
 --- @param file string ファイルパス
@@ -213,7 +221,8 @@ function M.find_call_t_expressions(bufnr)
     return {}
   end
 
-  local query_str = M.load_query_from_file(c.query_dir .. "/i18next.scm")
+  local library = utils.detect_library(bufnr) or utils.Library.I18Next
+  local query_str = M.load_query_from_file(library_query[library])
 
   if type(query_str) ~= "string" then
     return {}

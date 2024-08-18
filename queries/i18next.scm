@@ -12,21 +12,21 @@
         (undefined)
         (null)
       ]
-    )
+    )?
     (
       [
         (string (string_fragment) @i18n.namespace)
         (undefined)
         (null)
       ]
-    )
+    )?
     (
       [
         (string (string_fragment) @i18n.key_prefix)
         (undefined)
         (null)
       ]
-    )
+    )?
   )
 ) @i18n.get_t
 

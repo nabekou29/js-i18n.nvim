@@ -1,5 +1,5 @@
 local utils = require("js-i18n.utils")
-local ts = require("js-i18n.tree-sitter")
+local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
 
 --- 全ての翻訳を取得する関数
@@ -64,7 +64,7 @@ end
 local function handler(params, client)
   local bufnr = vim.uri_to_bufnr(params.textDocument.uri)
 
-  local ok, t_call = ts.check_cursor_in_t_argument(bufnr, params.position)
+  local ok, t_call = analyzer.check_cursor_in_t_argument(bufnr, params.position)
   if not ok or not t_call then
     return nil, nil
   end

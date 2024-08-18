@@ -1,6 +1,6 @@
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
-local ts = require("js-i18n.tree-sitter")
+local analyzer = require("js-i18n.analyzer")
 
 local M = {}
 
@@ -27,7 +27,7 @@ function M.check(client, uri)
   --- @type lsp.Diagnostic[]
   local diagnostics = {}
 
-  local t_calls = ts.find_call_t_expressions(bufnr)
+  local t_calls = analyzer.find_call_t_expressions(bufnr)
   for _, t_call in ipairs(t_calls) do
     local key = t_call.key
     local keys = vim.split(key, c.config.key_separator, { plain = true })

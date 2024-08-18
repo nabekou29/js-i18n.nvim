@@ -2,7 +2,7 @@ local async = require("plenary.async")
 
 local translation_source = require("js-i18n.translation-source")
 local virt_text = require("js-i18n.virt_text")
-local ts = require("js-i18n.tree-sitter")
+local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
 
@@ -201,7 +201,7 @@ function Client:edit_translation(lang, key)
       local row, col = unpack(vim.api.nvim_win_get_cursor(0))
       local position = { line = row - 1, character = col }
 
-      local ok, t_call = ts.check_cursor_in_t_argument(bufnr, position)
+      local ok, t_call = analyzer.check_cursor_in_t_argument(bufnr, position)
       if not ok or not t_call then
         return
       end
