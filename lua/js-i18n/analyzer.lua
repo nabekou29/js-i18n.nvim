@@ -268,42 +268,44 @@ function M.find_call_t_expressions(bufnr)
   for id, node, _ in query:iter_captures(root_node, bufnr) do
     local name = query.captures[id]
 
+    -- 現在のスコープから抜けたかどうかを判定する
+    local current_scope_node = current_scope().scope_node or root_node
+    if node:start() > current_scope_node:end_() or node:end_() < current_scope_node:start() then
+      leave_scope()
+    end
+
     if name == "i18n.get_t" then
       local get_t_detail = parse_get_t(node, bufnr, query)
       if get_t_detail then
+        -- 同一のスコープ内で get_t が呼ばれた場合はスコープを上書きする形になるように、一度 leave_scope してから enter_scope する
+        if get_t_detail.scope_node == current_scope().scope_node then
+          leave_scope()
+        end
         enter_scope(get_t_detail)
       end
-    else
-      -- 現在のスコープから抜けたかどうかを判定する
-      local current_scope_node = current_scope().scope_node or root_node
-      if node:start() > current_scope_node:end_() or node:end_() < current_scope_node:start() then
-        leave_scope()
+    elseif name == "i18n.call_t" then
+      local scope = current_scope()
+      local call_t_detail = parse_call_t(node, bufnr, query)
+
+      if call_t_detail == nil then
+        goto continue
       end
 
-      if name == "i18n.call_t" then
-        local scope = current_scope()
-        local call_t_detail = parse_call_t(node, bufnr, query)
-
-        if call_t_detail == nil then
-          goto continue
-        end
-
-        local key_prefix = call_t_detail.key_prefix or scope.key_prefix
-        local key = call_t_detail.key
-        if key_prefix ~= "" then
-          key = key_prefix .. c.config.key_separator .. key
-        end
-
-        table.insert(result, {
-          node = node,
-          key_node = call_t_detail.key_node,
-          key_arg_node = call_t_detail.key_arg_node,
-          key = key,
-          key_prefix = key_prefix,
-          key_arg = call_t_detail.key,
-          namespace = call_t_detail.namespace or scope.namespace,
-        })
+      local key_prefix = call_t_detail.key_prefix or scope.key_prefix
+      local key = call_t_detail.key
+      if key_prefix ~= "" then
+        key = key_prefix .. c.config.key_separator .. key
       end
+
+      table.insert(result, {
+        node = node,
+        key_node = call_t_detail.key_node,
+        key_arg_node = call_t_detail.key_arg_node,
+        key = key,
+        key_prefix = key_prefix,
+        key_arg = call_t_detail.key,
+        namespace = call_t_detail.namespace or scope.namespace,
+      })
     end
     ::continue::
   end

@@ -1,4 +1,5 @@
 .tests
+.tmp_projects
 .repro*
 
 demo/*.mp4

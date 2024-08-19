@@ -25,7 +25,7 @@ describe("Commands", function()
     end)
 
     after_each(function()
-      vim.cmd("bd!")
+      vim.cmd("bufdo bd!")
     end)
 
     it("should set the language passed as an argument", function()
