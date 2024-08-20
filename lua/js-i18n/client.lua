@@ -1,10 +1,10 @@
 local async = require("plenary.async")
 
-local translation_source = require("js-i18n.translation-source")
-local virt_text = require("js-i18n.virt_text")
 local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
+local translation_source = require("js-i18n.translation-source")
 local utils = require("js-i18n.utils")
+local virt_text = require("js-i18n.virt_text")
 
 local async_ui = {
   input = async.wrap(vim.ui.input, 2),

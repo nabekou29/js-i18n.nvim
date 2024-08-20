@@ -6,8 +6,13 @@ local M = {}
 local query_dir = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h:h:h") .. "/queries"
 
 local library_query = {
-  [utils.Library.I18Next] = query_dir .. "/i18next.scm",
-  [utils.Library.NextIntl] = query_dir .. "/next-intl.scm",
+  [utils.Library.I18Next] = {
+    typescript = { query_dir .. "/i18next.scm" },
+    ["*"] = { query_dir .. "/i18next.scm", query_dir .. "/react-i18next.scm" },
+  },
+  [utils.Library.NextIntl] = {
+    ["*"] = { query_dir .. "/next-intl.scm" },
+  },
 }
 
 --- ファイルからクエリを読み込む
@@ -39,12 +44,12 @@ end
 
 --- ノードから最も近い親ノードを取得する
 --- @param node TSNode
---- @param type_ string
+--- @param types string[]
 --- @return TSNode|nil
-function M.find_closest_node(node, type_)
+function M.find_closest_node(node, types)
   local parent = node:parent()
   while parent ~= nil do
-    if parent:type() == type_ then
+    if vim.tbl_contains(types, parent:type()) then
       return parent
     end
     parent = parent:parent()
@@ -140,7 +145,7 @@ local function parse_get_t(target_node, bufnr, query)
     end
   end
 
-  local scope_node = M.find_closest_node(target_node, "statement_block")
+  local scope_node = M.find_closest_node(target_node, { "statement_block", "jsx_element" })
 
   return {
     namespace = namespace,
@@ -222,9 +227,15 @@ function M.find_call_t_expressions(bufnr)
   end
 
   local library = utils.detect_library(bufnr) or utils.Library.I18Next
-  local query_str = M.load_query_from_file(library_query[library])
+  local query_str = ""
+  for _, query_file in ipairs(library_query[library][language] or library_query[library]["*"]) do
+    local str = M.load_query_from_file(query_file)
+    if str and type(str) == "string" and str ~= "" then
+      query_str = query_str .. "\n" .. str
+    end
+  end
 
-  if type(query_str) ~= "string" then
+  if query_str == "" then
     return {}
   end
 
