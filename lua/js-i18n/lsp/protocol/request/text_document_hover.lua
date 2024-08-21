@@ -1,6 +1,6 @@
-local utils = require("js-i18n.utils")
-local c = require("js-i18n.config")
 local analyzer = require("js-i18n.analyzer")
+local c = require("js-i18n.config")
+local utils = require("js-i18n.utils")
 
 --- @class Hover
 --- @field contents lsp.MarkedString | lsp.MarkedString[] | lsp.MarkupContent

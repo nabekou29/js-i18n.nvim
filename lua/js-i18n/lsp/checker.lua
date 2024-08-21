@@ -1,6 +1,6 @@
+local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
-local analyzer = require("js-i18n.analyzer")
 
 local M = {}
 

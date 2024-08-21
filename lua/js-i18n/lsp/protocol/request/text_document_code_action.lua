@@ -1,5 +1,5 @@
-local utils = require("js-i18n.utils")
 local analyzer = require("js-i18n.analyzer")
+local utils = require("js-i18n.utils")
 
 --- @class LanguageForCodeAction
 --- @field value string

@@ -1,5 +1,5 @@
-local c = require("js-i18n.config")
 local analyzer = require("js-i18n.analyzer")
+local c = require("js-i18n.config")
 
 local ns_id = vim.api.nvim_create_namespace("I18n")
 

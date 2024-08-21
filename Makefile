@@ -9,3 +9,8 @@ clean-test:
 	@echo "Cleaning up test files..."
 	rm -rf .tests
 	rm -rf tests/.tmp_projects
+
+.PHONY: format
+format:
+	@echo "Formatting files..."
+	stylua -g '*.lua' .

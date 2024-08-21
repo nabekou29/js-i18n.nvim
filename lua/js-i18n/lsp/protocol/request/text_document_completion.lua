@@ -1,6 +1,6 @@
-local utils = require("js-i18n.utils")
 local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
+local utils = require("js-i18n.utils")
 
 --- 全ての翻訳を取得する関数
 --- @param translation I18n.TranslationSource

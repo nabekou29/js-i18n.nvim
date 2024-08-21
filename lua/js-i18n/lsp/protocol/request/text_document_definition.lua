@@ -1,7 +1,8 @@
-local utils = require("js-i18n.utils")
+local Path = require("plenary.path")
+
 local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
-local Path = require("plenary.path")
+local utils = require("js-i18n.utils")
 
 --- ハンドラ
 --- @param params lsp.DefinitionParams

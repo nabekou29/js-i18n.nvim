@@ -1,7 +1,8 @@
-local c = require("js-i18n.config")
 local Path = require("plenary.path")
-local scan = require("plenary.scandir")
 local async = require("plenary.async")
+local scan = require("plenary.scandir")
+
+local c = require("js-i18n.config")
 
 local M = {}
 
