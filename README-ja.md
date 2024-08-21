@@ -7,11 +7,16 @@
 [![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
 [![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
 
-js-i18n.nvim は、JavaScript のライブラリである i18next のための Neovim プラグインです。
+js-i18n.nvim は、JavaScript の i18n ライブラリをサポートする Neovim プラグインです。
 
 <div>
   <video src="https://github.com/user-attachments/assets/abcd728d-42d1-46d2-8d18-072102b1cf71" type="video/mp4" />
 </div>
+
+## 🚧 ステータス
+
+> [!WARNING]
+> このプラグインはまだ開発中であり、開発者の利用ケースに最適化しています。
 
 ## ✨ 機能
 
@@ -22,11 +27,17 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 - ホバーによる翻訳の表示
 - キーの補完
 - モノレポ のサポート
+- いくつかのライブラリのサポート (i18next, react-i18next, next-intl)
 
-## 🚧 ステータス
+### サポートしているライブラリ
 
-> [!WARNING]
-> このプラグインはまだ開発中であり、開発者の利用ケースに最適化しています。
+#### [i18next](https://www.i18next.com/), [react-i18next](https://react.i18next.com/)
+
+![i18next-screenshot](https://github.com/user-attachments/assets/349f5242-f717-4af9-9790-623ddad0492f)
+
+#### [next-intl](https://next-intl-docs.vercel.app/)
+
+![next-intl-screenshot](https://github.com/user-attachments/assets/e6873336-5161-40b1-9bcc-c845ca750860)
 
 ## ✅ 必須条件
 
@@ -100,10 +111,6 @@ js-i18n.nvim は、JavaScript のライブラリである i18next のための N
 
 ## ⬆️ ロードマップ
 
-今後もいくつかの機能の追加を予定しています。
-
-- i18next のサポートの強化
-  - react-i18next や、i18next の高度な利用についてもサポートする予定です。
-    - `namespace` や `keyPrefix` のサポート
-    - `Trans` コンポーネントのサポート
-- i18next 以外のライブラリのサポート
+- ライブラリサポートの強化
+  - namespace のサポート
+- 今より賢い翻訳リソースの検出

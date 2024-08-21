@@ -1,0 +1,7 @@
+{
+  "nested": {
+    "key": "Nested Key"
+  },
+  "key": "Key",
+  "rich-key": "<highlight>Rich Key</highlight>"
+}
