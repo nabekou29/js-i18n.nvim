@@ -1,0 +1,8 @@
+{
+  "name": "next-intl",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "next-intl": "3.17.3"
+  }
+}

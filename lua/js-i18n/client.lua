@@ -1,10 +1,10 @@
 local async = require("plenary.async")
 
-local translation_source = require("js-i18n.translation-source")
-local virt_text = require("js-i18n.virt_text")
+local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
+local translation_source = require("js-i18n.translation-source")
 local utils = require("js-i18n.utils")
-local lsp_utils = require("js-i18n.lsp.utils")
+local virt_text = require("js-i18n.virt_text")
 
 local async_ui = {
   input = async.wrap(vim.ui.input, 2),
@@ -201,13 +201,11 @@ function Client:edit_translation(lang, key)
       local row, col = unpack(vim.api.nvim_win_get_cursor(0))
       local position = { line = row - 1, character = col }
 
-      -- カーソル位置が t 関数の引数内にあるか確認
-      local ok, key_node = lsp_utils.check_cursor_in_t_argument(bufnr, position)
-      if not ok or not key_node then
+      local ok, t_call = analyzer.check_cursor_in_t_argument(bufnr, position)
+      if not ok or not t_call then
         return
       end
-      -- キーを取得
-      return vim.treesitter.get_node_text(key_node, bufnr)
+      return t_call.key
     end
 
     -- キーを取得
@@ -230,6 +228,12 @@ function Client:edit_translation(lang, key)
     if not file then
       local sources = ws_t_source:get_translation_source_by_lang(lang)
       local files = vim.tbl_keys(sources)
+
+      -- カレントディレクトリからの相対パスに変換
+      files = vim.tbl_map(function(f)
+        return vim.fn.fnamemodify(f, ":.")
+      end, files)
+
       -- 文言ファイルが複数ある場合は、選択させる
       if #files > 1 then
         local selected = async_ui.select(files, {

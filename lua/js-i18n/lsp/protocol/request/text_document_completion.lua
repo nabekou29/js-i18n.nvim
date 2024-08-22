@@ -1,6 +1,6 @@
-local utils = require("js-i18n.utils")
-local lsp_utils = require("js-i18n.lsp.utils")
+local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
+local utils = require("js-i18n.utils")
 
 --- 全ての翻訳を取得する関数
 --- @param translation I18n.TranslationSource
@@ -23,15 +23,24 @@ end
 --- 全てのキーを取得する関数
 --- @param client I18n.Client
 --- @param bufnr number
+--- @param t_call FindTExpressionResultItem
 --- @return lsp.CompletionItem[]
-local function get_completion_items(client, bufnr)
+local function get_completion_items(client, bufnr, t_call)
   local lang = client:get_language(bufnr)
   local t_source = client.t_source_by_workspace[utils.get_workspace_root(bufnr)]
+
+  local key_prefix = t_call.key_prefix or ""
 
   local translations = {}
   for _, source in pairs(t_source:get_translation_source_by_lang(lang)) do
     for key, value in pairs(get_all_translation(source)) do
-      translations[key] = value
+      if key_prefix == "" then
+        translations[key] = value
+      else
+        if key:find(key_prefix, 1, true) == 1 then
+          translations[key:sub(#key_prefix + 2)] = value
+        end
+      end
     end
   end
 
@@ -55,12 +64,12 @@ end
 local function handler(params, client)
   local bufnr = vim.uri_to_bufnr(params.textDocument.uri)
 
-  local ok = lsp_utils.check_cursor_in_t_argument(bufnr, params.position)
-  if not ok then
+  local ok, t_call = analyzer.check_cursor_in_t_argument(bufnr, params.position)
+  if not ok or not t_call then
     return nil, nil
   end
 
-  local items = get_completion_items(client, bufnr)
+  local items = get_completion_items(client, bufnr, t_call)
   return nil, items
 end
 

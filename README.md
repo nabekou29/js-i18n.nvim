@@ -13,11 +13,16 @@ _⚠︎ This file is translated and updated by ChatGPT based on the original tex
 [![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
 [![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
 
-js-i18n.nvim is a Neovim plugin for the JavaScript library i18next.
+js-i18n.nvim is a Neovim plugin that supports JavaScript i18n libraries.
 
 <div>
   <video src="https://github.com/user-attachments/assets/abcd728d-42d1-46d2-8d18-072102b1cf71" type="video/mp4" />
 </div>
+
+## 🚧 Status
+
+> [!WARNING]
+> This plugin is still under development and is optimized for the developer's use cases.
 
 ## ✨ Features
 
@@ -28,11 +33,17 @@ js-i18n.nvim is a Neovim plugin for the JavaScript library i18next.
 - Display translations for each language on hover
 - Key completion
 - Support for monorepos
+- Support for multiple libraries (i18next, react-i18next, next-intl)
 
-## 🚧 Status
+### Supported Libraries
 
-> [!WARNING]
-> This plugin is still under development and is optimized for the developer's use cases.
+#### [i18next](https://www.i18next.com/), [react-i18next](https://react.i18next.com/)
+
+![i18next-screenshot](https://github.com/user-attachments/assets/349f5242-f717-4af9-9790-623ddad0492f)
+
+#### [next-intl](https://next-intl-docs.vercel.app/)
+
+![next-intl-screenshot](https://github.com/user-attachments/assets/e6873336-5161-40b1-9bcc-c845ca750860)
 
 ## ✅ Requirements
 
@@ -105,10 +116,6 @@ The default settings are as follows. For omitted parts, refer to [config.lua](./
 
 ## ⬆️ Roadmap
 
-We plan to add several features in the future.
-
-- Enhanced support for i18next
-  - Planning to support advanced usage of i18next and react-i18next.
-    - `namespace` and `keySeparator` options support
-    - `Trans` component support
-- Support for libraries other than i18next
+- Enhanced support for libraries
+  - Namespace support
+- Smarter translation resource detection

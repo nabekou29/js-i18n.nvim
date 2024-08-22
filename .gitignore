@@ -1,7 +1,9 @@
 .tests
+.tmp_projects
 .repro*
 
 demo/*.mp4
+demo/*.png
 
 node_modules
 package-lock.json

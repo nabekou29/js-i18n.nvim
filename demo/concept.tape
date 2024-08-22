@@ -11,7 +11,7 @@ Set TypingSpeed 0.2
 
 Hide
 
-Type@0 "nvim -u config.lua projects/i18next/index.jsx" Enter
+Type@0 "nvim -u config.lua projects/i18next/concept.jsx" Enter
 
 Sleep 5 # load lazy.nvim
 # Type q # lazy.nvim がエラーになるので閉じる

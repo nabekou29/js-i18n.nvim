@@ -1,5 +1,5 @@
+local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
-local utils = require("js-i18n.utils")
 
 local ns_id = vim.api.nvim_create_namespace("I18n")
 
@@ -43,51 +43,6 @@ local function get_translation(lang, key, t_source)
   return nil, nil
 end
 
---- t関数を含むノードを検索する
---- @param bufnr integer バッファ番号
---- @param start? integer 開始行
---- @param stop? integer 終了行
---- @return TSNode[][]
-local function find_call_t_expressions(bufnr, start, stop)
-  local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
-  if not ok then
-    return {}
-  end
-  local tree = parser:parse()[1]
-  local root_node = tree:root()
-  local language = parser:lang()
-
-  if not vim.tbl_contains({ "javascript", "typescript", "jsx", "tsx" }, language) then
-    return {}
-  end
-
-  local query = vim.treesitter.query.parse(
-    language,
-    [[
-      (call_expression
-        function: [
-          (identifier)
-          (member_expression)
-        ] @t_func (#match? @t_func "^(i18next\.)?t$")
-        arguments: (arguments
-          (string
-            (string_fragment) @str_frag
-          )
-        )
-      )
-    ]]
-  )
-
-  local t_nodes = {}
-  for _, match in query:iter_matches(root_node, bufnr, start, stop) do
-    local func = match[1]
-    local args = match[2]
-    table.insert(t_nodes, { func, args })
-  end
-
-  return t_nodes
-end
-
 --- バーチャルテキストを表示する
 --- @param bufnr integer バッファ番号
 --- @param current_language string 言語
@@ -99,20 +54,19 @@ function M.set_extmark(bufnr, current_language, t_source)
 
   M.clear_extmarks(bufnr)
 
-  local t_nodes = find_call_t_expressions(bufnr)
-  for _, t_node in ipairs(t_nodes) do
-    local key_node = t_node[2]
+  local t_calls = analyzer.find_call_t_expressions(bufnr)
 
-    local key = vim.treesitter.get_node_text(key_node, bufnr)
+  for _, t_call in ipairs(t_calls) do
+    local key_node = t_call.key_node
 
-    local text, lang = get_translation(current_language, key, t_source)
+    local text, lang = get_translation(current_language, t_call.key, t_source)
     if text == nil or lang == nil then
       goto continue
     end
 
     local key_row_start, key_col_start, key_row_end, key_col_end = key_node:range()
     local virt_text = c.config.virt_text.format(text, {
-      key = key,
+      key = t_call.key,
       lang = lang,
       current_language = current_language,
       config = c.config,
@@ -136,7 +90,7 @@ function M.set_extmark(bufnr, current_language, t_source)
       })
     end
 
-    vim.api.nvim_buf_set_extmark(bufnr, ns_id, key_row_start, key_col_start + #key + 1, {
+    vim.api.nvim_buf_set_extmark(bufnr, ns_id, key_row_start, key_col_start + #t_call.key_arg + 1, {
       virt_text = virt_text,
       virt_text_pos = "inline",
     })

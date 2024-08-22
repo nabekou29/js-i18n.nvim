@@ -52,7 +52,7 @@ M.use_project = function(project_name)
 
   os.execute("rm -rf " .. project_path)
   os.execute("mkdir -p " .. test_project_root_path)
-  os.execute("cp -r " .. template_project_path .. " " .. project_path)
+  os.execute("rsync -a --exclude=node_modules " .. template_project_path .. "/ " .. project_path)
 
   return {
     path = project_path,

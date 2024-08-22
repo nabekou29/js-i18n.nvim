@@ -1,5 +1,5 @@
-local c = require("js-i18n.config")
 local Client = require("js-i18n.client")
+local c = require("js-i18n.config")
 
 local i18n = {}
 

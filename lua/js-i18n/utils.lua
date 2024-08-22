@@ -1,5 +1,11 @@
 local M = {}
 
+--- ライブラリの識別子
+M.Library = {
+  I18Next = "i18next",
+  NextIntl = "next-intl",
+}
+
 --- プロジェクトのルートディレクトリを取得する
 --- @param bufnr number
 --- @return string プロジェクトのルートディレクトリ
@@ -10,6 +16,56 @@ function M.get_workspace_root(bufnr)
   else
     return root
   end
+end
+
+--- 使用しているライブラリを取得する
+--- @param bufnr number バッファ番号
+--- @return string|nil ライブラリの識別子
+function M.detect_library(bufnr)
+  local root = M.get_workspace_root(bufnr)
+  local package_json = root .. "/package.json"
+
+  local package = vim.fn.json_decode(vim.fn.readfile(package_json))
+
+  if package == nil then
+    return nil
+  end
+
+  local library_names = {
+    [M.Library.I18Next] = {
+      "i18next",
+      "react-i18next",
+      "next-i18next",
+    },
+    [M.Library.NextIntl] = {
+      "next-intl",
+    },
+  }
+
+  for _, dep_key in ipairs({
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "peerDependenciesMeta",
+    "bundledDependencies",
+    "optionalDependencies",
+  }) do
+    if package[dep_key] == nil then
+      goto continue
+    end
+
+    for lib, names in pairs(library_names) do
+      for _, name in ipairs(names) do
+        if package[dep_key][name] ~= nil then
+          return lib
+        end
+      end
+    end
+
+    ::continue::
+  end
+
+  return nil
 end
 
 --- 使用すべき言語を取得する
