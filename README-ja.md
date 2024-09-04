@@ -91,8 +91,8 @@ js-i18n.nvim は、JavaScript の i18n ライブラリをサポートする Neov
 ```lua
 {
   primary_language = {}, -- 優先表示する言語（バーチャルテキストなどの表示に使用する言語の初期設定）
-  translation_source = { "**/locales/*/translation.json" }, -- 翻訳リソースのパターン
-  detect_language = ..., -- 言語を検出する関数。
+  translation_source = { "**/{locales,messages}/*.json" }, -- 翻訳リソースのパターン
+  detect_language = ..., -- 言語を検出する関数。デフォルトではファイル名からヒューリスティックに検出する関数が使用されます。
   key_separator = ".", -- キーのセパレータ
   virt_text = {
     enabled = true, -- バーチャルテキストの表示を有効にする
@@ -113,4 +113,3 @@ js-i18n.nvim は、JavaScript の i18n ライブラリをサポートする Neov
 
 - ライブラリサポートの強化
   - namespace のサポート
-- 今より賢い翻訳リソースの検出

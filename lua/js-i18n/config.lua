@@ -1,13 +1,32 @@
+local locals = require("js-i18n.local_name_list")
 local utils = require("js-i18n.utils")
 
 local M = {}
 
---- ファイルパスから言語を検出する
---- @param path string ファイルパス
-local function default_detect_language(path)
+local function normalize_locale(locale)
+  return locale:lower():gsub("-", "_")
+end
+
+local LocalSet = {}
+for _, locale in ipairs(locals) do
+  LocalSet[normalize_locale(locale)] = true
+end
+
+--- Detect language from file path heuristically
+--- @param path string File path
+function M.default_detect_language(path)
   local abs_path = vim.fn.fnamemodify(path, ":p")
-  local split = vim.split(abs_path, "/")
-  local lang = split[#split - 1]
+  local split = vim.split(abs_path, "[/.]")
+
+  local lang = nil
+
+  for _, part in ipairs(vim.fn.reverse(split)) do
+    if LocalSet[normalize_locale(part)] then
+      lang = part
+      break
+    end
+  end
+
   return lang
 end
 
@@ -56,8 +75,8 @@ end
 --- @type I18n.Config
 local default_config = {
   primary_language = {},
-  translation_source = { "**/locales/**/*.json" },
-  detect_language = default_detect_language,
+  translation_source = { "**/{locales,messages}/*.json" },
+  detect_language = M.default_detect_language,
   key_separator = ".",
   virt_text = {
     enabled = true,
