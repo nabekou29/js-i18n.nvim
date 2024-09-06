@@ -1,15 +1,15 @@
-local locals = require("js-i18n.local_name_list")
+local langs = require("js-i18n.lang_name_list")
 local utils = require("js-i18n.utils")
 
 local M = {}
 
-local function normalize_locale(locale)
+local function normalize_lang(locale)
   return locale:lower():gsub("-", "_")
 end
 
-local LocalSet = {}
-for _, locale in ipairs(locals) do
-  LocalSet[normalize_locale(locale)] = true
+local LangSet = {}
+for _, l in ipairs(langs) do
+  LangSet[normalize_lang(l)] = true
 end
 
 --- Detect language from file path heuristically
@@ -21,7 +21,7 @@ function M.default_detect_language(path)
   local lang = nil
 
   for _, part in ipairs(vim.fn.reverse(split)) do
-    if LocalSet[normalize_locale(part)] then
+    if LangSet[normalize_lang(part)] then
       lang = part
       break
     end
