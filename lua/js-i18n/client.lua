@@ -7,8 +7,12 @@ local utils = require("js-i18n.utils")
 local virt_text = require("js-i18n.virt_text")
 
 local async_ui = {
-  input = async.wrap(vim.ui.input, 2),
-  select = async.wrap(vim.ui.select, 3),
+  input = function(...)
+    return async.wrap(vim.ui.input, 2)(...)
+  end,
+  select = function(...)
+    return async.wrap(vim.ui.select, 3)(...)
+  end,
 }
 
 if _TEST then
