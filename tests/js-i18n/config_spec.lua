@@ -5,12 +5,12 @@ describe("js-i18n.config", function()
     local tests = {
       { path = "/path/to/locals/en/trans.json", expected = "en" },
       { path = "/path/to/locals/ja/trans.json", expected = "ja" },
-      { path = "/path/to/locals/hoge/trans.json", expected = nil },
+      { path = "/path/to/locals/hoge/trans.json", expected = "unknown" },
 
       -- Test cases to verify that it is sufficient for the languagee name to be included somewhere.
       { path = "/path/to/locals/sub/en.json", expected = "en" },
       { path = "/path/to/en/locals/trans.json", expected = "en" },
-      { path = "/path/to/locals/en-trans.json", expected = nil },
+      { path = "/path/to/locals/en-trans.json", expected = "unknown" },
 
       -- Test cases for language names with any case and separating characters.
       { path = "/path/to/locals/en-us/trans.json", expected = "en-us" },

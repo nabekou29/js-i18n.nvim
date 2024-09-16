@@ -18,7 +18,7 @@ function M.default_detect_language(path)
   local abs_path = vim.fn.fnamemodify(path, ":p")
   local split = vim.split(abs_path, "[/.]")
 
-  local lang = nil
+  local lang = "unknown"
 
   for _, part in ipairs(vim.fn.reverse(split)) do
     if LangSet[normalize_lang(part)] then

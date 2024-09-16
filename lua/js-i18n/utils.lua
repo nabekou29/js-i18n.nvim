@@ -23,10 +23,13 @@ end
 --- @return string|nil ライブラリの識別子
 function M.detect_library(bufnr)
   local root = M.get_workspace_root(bufnr)
-  local package_json = root .. "/package.json"
 
-  local package = vim.fn.json_decode(vim.fn.readfile(package_json))
+  local ok, package_json = pcall(vim.fn.readfile, root .. "/package.json")
+  if not ok then
+    return nil
+  end
 
+  local package = vim.fn.json_decode(package_json)
   if package == nil then
     return nil
   end
