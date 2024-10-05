@@ -157,6 +157,20 @@ describe("analyzer.find_call_t_expressions", function()
     for _, test in ipairs(tests) do
       test_find_t_call(get_project, test.text, false)
     end
+
+    it("should find \"t\" function calls in \"t('key1', { value: t('key2') })\"", function()
+      -- Arrange
+      vim.cmd("e " .. project.path .. "/index.js")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "t('key1', { value: t('key2') })" })
+
+      -- Act
+      local result = analyzer.find_call_t_expressions(0)
+
+      -- Assert
+      assert.are.equal(2, #result)
+      assert.are.same("key1", result[1].key)
+      assert.are.same("key2", result[2].key)
+    end)
   end)
 
   describe("when using 'next-intl'", function()

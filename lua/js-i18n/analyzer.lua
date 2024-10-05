@@ -176,15 +176,17 @@ local function parse_call_t(target_node, bufnr, query)
   for id, node, _ in query:iter_captures(target_node, bufnr, 0, -1) do
     local name = query.captures[id]
 
+    -- t関数の呼び出しがネストしている場合があるため、最初に見つかったものを採用する
+    -- そのため key = ke or ... のような形にしている
     if name == "i18n.key" then
-      key = vim.treesitter.get_node_text(node, bufnr)
-      key_node = node
+      key = key or vim.treesitter.get_node_text(node, bufnr)
+      key_node = key_node or node
     elseif name == "i18n.key_arg" then
-      key_arg_node = node
+      key_arg_node = key_arg_node or node
     elseif name == "i18n.namespace" then
-      namespace = vim.treesitter.get_node_text(node, bufnr)
+      namespace = namespace or vim.treesitter.get_node_text(node, bufnr)
     elseif name == "i18n.key_prefix" then
-      key_prefix = vim.treesitter.get_node_text(node, bufnr)
+      key_prefix = key_prefix or vim.treesitter.get_node_text(node, bufnr)
     end
   end
 
