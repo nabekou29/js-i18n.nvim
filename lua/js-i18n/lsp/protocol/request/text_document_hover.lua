@@ -25,17 +25,19 @@ local function handler(params, client)
   local keys = vim.split(key, c.config.key_separator, { plain = true })
 
   -- 各言語の翻訳を表示
+  --- @type string[]
   local contents = {}
   for _, lang in ipairs(t_source:get_available_languages()) do
     local translation = t_source:get_translation(lang, keys)
     if translation then
       if type(translation) == "string" then
-        table.insert(contents, lang .. ": " .. translation)
+        table.insert(contents, lang .. ": `" .. translation .. "`")
       else
-        table.insert(contents, lang .. ": " .. vim.inspect(translation))
+        local json = vim.fn.system("echo '" .. vim.fn.json_encode(translation) .. "'" .. " | jq .")
+        table.insert(contents, lang .. ": \n```json\n" .. json .. "```")
       end
     else
-      table.insert(contents, lang .. ": -")
+      table.insert(contents, lang .. ": `N/A`")
     end
   end
 
