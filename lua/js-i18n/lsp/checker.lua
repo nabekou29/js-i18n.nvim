@@ -10,6 +10,7 @@ function M.check(client, uri)
   local bufnr = vim.uri_to_bufnr(uri)
   local workspace_dir = utils.get_workspace_root(bufnr)
   local t_source = client.t_source_by_workspace[workspace_dir]
+  local library = utils.detect_library(bufnr)
 
   local dispatchers = require("js-i18n.lsp.config").dispatchers
   if not dispatchers then
@@ -35,7 +36,7 @@ function M.check(client, uri)
     local missing_languages = {}
     local available_languages = t_source:get_available_languages()
     for _, lang in ipairs(available_languages) do
-      local translation = t_source:get_translation(lang, keys)
+      local translation = t_source:get_translation(lang, keys, library)
       if not translation then
         table.insert(missing_languages, lang)
       end

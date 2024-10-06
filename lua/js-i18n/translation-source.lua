@@ -1,6 +1,7 @@
 local Path = require("plenary.path")
 local async = require("plenary.async")
 local scan = require("plenary.scandir")
+local utils = require("js-i18n.utils")
 
 local c = require("js-i18n.config")
 
@@ -212,13 +213,25 @@ end
 --- 文言の取得
 --- @param lang string 言語
 --- @param key string[] キー
+--- @param library? string ライブラリ
 --- @return any|string|nil translation 文言
 --- @return string|nil file 文言リソース
-function TranslationSource:get_translation(lang, key)
+function TranslationSource:get_translation(lang, key, library)
   for file, json in pairs(self:get_translation_source_by_lang(lang)) do
     local text = vim.tbl_get(json, unpack(key))
     if text then
       return text, file
+    end
+
+    if library == utils.Library.I18Next then
+      for _, suffix in ipairs(c.config.libraries.i18next.plural_suffixes) do
+        local key_with_suffix = { unpack(key) }
+        key_with_suffix[#key_with_suffix] = key_with_suffix[#key_with_suffix] .. suffix
+        text = vim.tbl_get(json, unpack(key_with_suffix))
+        if text then
+          return text, file
+        end
+      end
     end
   end
 end
