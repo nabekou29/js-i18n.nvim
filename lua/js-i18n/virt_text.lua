@@ -1,5 +1,6 @@
 local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
+local utils = require("js-i18n.utils")
 
 local ns_id = vim.api.nvim_create_namespace("I18n")
 
@@ -16,8 +17,9 @@ local M = {}
 --- @param lang string 言語
 --- @param key string キー
 --- @param t_source I18n.TranslationSource 翻訳ソース
+--- @param library? string ライブラリ
 --- @return string | nil 翻訳, string | nil 言語
-local function get_translation(lang, key, t_source)
+local function get_translation(lang, key, t_source, library)
   local langs = { lang }
   if c.config.virt_text.fallback then
     langs = vim
@@ -33,8 +35,8 @@ local function get_translation(lang, key, t_source)
   end
 
   for _, l in ipairs(langs) do
-    local text =
-      t_source:get_translation(l, vim.split(key, c.config.key_separator, { plain = true }))
+    local split_key = vim.split(key, c.config.key_separator, { plain = true })
+    local text = t_source:get_translation(l, split_key, library)
     if text ~= nil and type(text) == "string" then
       return text, l
     end
@@ -52,6 +54,8 @@ function M.set_extmark(bufnr, current_language, t_source)
     return
   end
 
+  local library = utils.detect_library(bufnr)
+
   M.clear_extmarks(bufnr)
 
   local t_calls = analyzer.find_call_t_expressions(bufnr)
@@ -59,7 +63,7 @@ function M.set_extmark(bufnr, current_language, t_source)
   for _, t_call in ipairs(t_calls) do
     local key_node = t_call.key_node
 
-    local text, lang = get_translation(current_language, t_call.key, t_source)
+    local text, lang = get_translation(current_language, t_call.key, t_source, library)
     if text == nil or lang == nil then
       goto continue
     end

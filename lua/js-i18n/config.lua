@@ -58,6 +58,7 @@ end
 --- @field key_separator string キーのセパレータ
 --- @field virt_text I18n.VirtTextConfig バーチャルテキストの設定
 --- @field diagnostic I18n.Diagnostic 診断の設定
+--- @field libraries table<string, table> ライブラリごとの設定
 
 --- @class I18n.VirtTextConfig
 --- @field enabled boolean バーチャルテキストを有効にするかどうか
@@ -89,6 +90,25 @@ local default_config = {
   diagnostic = {
     enabled = true,
     severity = vim.diagnostic.severity.WARN,
+  },
+  libraries = {
+    -- Config for i18next, react-i18next, next-i18next
+    i18next = {
+      plural_suffixes = {
+        "_ordinal_other",
+        "_ordinal_many",
+        "_ordinal_few",
+        "_ordinal_two",
+        "_ordinal_one",
+        "_ordinal_zero",
+        "_other",
+        "_many",
+        "_few",
+        "_two",
+        "_one",
+        "_zero",
+      },
+    },
   },
 }
 
