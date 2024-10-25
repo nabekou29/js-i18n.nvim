@@ -214,22 +214,25 @@ end
 --- @param lang string 言語
 --- @param key string[] キー
 --- @param library? string ライブラリ
+--- @param namespace? string
 --- @return any|string|nil translation 文言
 --- @return string|nil file 文言リソース
-function TranslationSource:get_translation(lang, key, library)
+function TranslationSource:get_translation(lang, key, library, namespace)
   for file, json in pairs(self:get_translation_source_by_lang(lang)) do
-    local text = vim.tbl_get(json, unpack(key))
-    if text then
-      return text, file
-    end
+    if namespace == nil or string.find(file, namespace .. ".json") then
+      local text = vim.tbl_get(json, unpack(key))
+      if text then
+        return text, file
+      end
 
-    if library == utils.Library.I18Next then
-      for _, suffix in ipairs(c.config.libraries.i18next.plural_suffixes) do
-        local key_with_suffix = { unpack(key) }
-        key_with_suffix[#key_with_suffix] = key_with_suffix[#key_with_suffix] .. suffix
-        text = vim.tbl_get(json, unpack(key_with_suffix))
-        if text then
-          return text, file
+      if library == utils.Library.I18Next then
+        for _, suffix in ipairs(c.config.libraries.i18next.plural_suffixes) do
+          local key_with_suffix = { unpack(key) }
+          key_with_suffix[#key_with_suffix] = key_with_suffix[#key_with_suffix] .. suffix
+          text = vim.tbl_get(json, unpack(key_with_suffix))
+          if text then
+            return text, file
+          end
         end
       end
     end
