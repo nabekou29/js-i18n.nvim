@@ -227,11 +227,30 @@ function Client:edit_translation(lang, key)
       return
     end
 
+    local namespace = nil
+
+    if c.config.namespace_separator ~= nil then
+      local split_first_key = vim.split(split_key[1], c.config.namespace_separator, { plain = true })
+      namespace = split_first_key[1]
+      split_key[1] = split_first_key[2]
+    end
+
     -- キーに一致する文言があれば編集、なければ追加
-    local old_translation, file = ws_t_source:get_translation(lang, split_key)
+    local old_translation, file = ws_t_source:get_translation(lang, split_key, nil, namespace)
     if not file then
       local sources = ws_t_source:get_translation_source_by_lang(lang)
-      local files = vim.tbl_keys(sources)
+
+      local all_files = vim.tbl_keys(sources)
+
+      local files = {}
+
+      local i = 1
+      for _, file in pairs(all_files) do
+        if namespace == nil or string.find(file, namespace .. ".json") then
+          files[i] = file
+          i = i + 1
+        end
+      end
 
       -- カレントディレクトリからの相対パスに変換
       files = vim.tbl_map(function(f)

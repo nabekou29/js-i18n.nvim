@@ -299,6 +299,12 @@ function M.find_call_t_expressions(bufnr)
         key = key_prefix .. c.config.key_separator .. key
       end
 
+      local namespace = nil
+      if c.config.namespace_separator ~= nil then
+        local split_key = vim.split(key, c.config.namespace_separator, { plain = true })
+        namespace = split_key[1]
+      end
+
       table.insert(result, {
         node = node,
         key_node = call_t_detail.key_node,
@@ -306,7 +312,7 @@ function M.find_call_t_expressions(bufnr)
         key = key,
         key_prefix = key_prefix,
         key_arg = call_t_detail.key,
-        namespace = call_t_detail.namespace or scope.namespace,
+        namespace = call_t_detail.namespace or namespace or scope.namespace,
       })
     end
     ::continue::
