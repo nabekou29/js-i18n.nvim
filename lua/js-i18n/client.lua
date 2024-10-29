@@ -238,7 +238,7 @@ function Client:edit_translation(lang, key)
     -- キーに一致する文言があれば編集、なければ追加
     local old_translation, file = ws_t_source:get_translation(lang, split_key, nil, namespace)
     if not file then
-      local sources = ws_t_source:get_translation_source_by_lang(lang)
+      local sources = ws_t_source:get_translation_source_by_lang(lang, namespace)
 
       local all_files = vim.tbl_keys(sources)
 

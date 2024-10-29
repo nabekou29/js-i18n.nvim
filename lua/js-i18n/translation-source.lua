@@ -141,9 +141,23 @@ end
 
 --- 特定言語の翻訳リソースを取得する
 --- @param lang string 言語
+--- @param namespace string?
 --- @return table<string, table>
-function TranslationSource:get_translation_source_by_lang(lang)
-  return self._translations[lang] or {}
+function TranslationSource:get_translation_source_by_lang(lang, namespace)
+  local translations = self._translations[lang] or {}
+  local filtered_translations = {}
+
+  if namespace then
+    for file, content in pairs(translations) do
+      if file == namespace .. ".json" then
+        filtered_translations[file] = content
+      end
+    end
+  else
+    filtered_translations = translations
+  end
+
+  return filtered_translations
 end
 
 --- 文言ファイルの監視を停止する
@@ -218,21 +232,19 @@ end
 --- @return any|string|nil translation 文言
 --- @return string|nil file 文言リソース
 function TranslationSource:get_translation(lang, key, library, namespace)
-  for file, json in pairs(self:get_translation_source_by_lang(lang)) do
-    if namespace == nil or string.find(file, namespace .. ".json") then
-      local text = vim.tbl_get(json, unpack(key))
-      if text then
-        return text, file
-      end
+  for file, json in pairs(self:get_translation_source_by_lang(lang, namespace)) do
+    local text = vim.tbl_get(json, unpack(key))
+    if text then
+      return text, file
+    end
 
-      if library == utils.Library.I18Next then
-        for _, suffix in ipairs(c.config.libraries.i18next.plural_suffixes) do
-          local key_with_suffix = { unpack(key) }
-          key_with_suffix[#key_with_suffix] = key_with_suffix[#key_with_suffix] .. suffix
-          text = vim.tbl_get(json, unpack(key_with_suffix))
-          if text then
-            return text, file
-          end
+    if library == utils.Library.I18Next then
+      for _, suffix in ipairs(c.config.libraries.i18next.plural_suffixes) do
+        local key_with_suffix = { unpack(key) }
+        key_with_suffix[#key_with_suffix] = key_with_suffix[#key_with_suffix] .. suffix
+        text = vim.tbl_get(json, unpack(key_with_suffix))
+        if text then
+          return text, file
         end
       end
     end
