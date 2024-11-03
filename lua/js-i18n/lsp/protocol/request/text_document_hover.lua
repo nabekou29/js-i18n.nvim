@@ -28,9 +28,14 @@ local function handler(params, client)
 
   if c.config.namespace_separator ~= nil then
     local split_first_key = vim.split(keys[1], c.config.namespace_separator, { plain = true })
-    namespace = split_first_key[1]
-    keys[1] = split_first_key[2]
+    if #split_first_key <= 1 then
+      namespace = nil
+    else
+      namespace = split_first_key[1]
+      keys[1] = split_first_key[2]
+    end
   end
+  namespace = namespace or t_call.namespace
 
   -- 各言語の翻訳を表示
   --- @type string[]

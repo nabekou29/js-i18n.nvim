@@ -17,6 +17,9 @@ function M.get_translation_files(dir)
     scan.scan_dir(dir, {
       search_pattern = "%.json$",
       on_insert = function(path)
+        if path:find("node_modules") then
+          return
+        end
         local match_s = regexp:match_str(path)
         if match_s then
           table.insert(result, path)
@@ -147,16 +150,15 @@ function TranslationSource:get_translation_source_by_lang(lang, namespace)
   local translations = self._translations[lang] or {}
   local filtered_translations = {}
 
-  if namespace then
-    for file, content in pairs(translations) do
-      if file == namespace .. ".json" then
-        filtered_translations[file] = content
-      end
+if namespace then
+  for file, content in pairs(translations) do
+    if string.find(file, namespace .. ".json") then
+      filtered_translations[file] = content
     end
-  else
-    filtered_translations = translations
   end
-
+else
+  filtered_translations = translations
+end
   return filtered_translations
 end
 

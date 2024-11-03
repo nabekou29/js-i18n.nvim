@@ -18,8 +18,9 @@ local M = {}
 --- @param key string キー
 --- @param t_source I18n.TranslationSource 翻訳ソース
 --- @param library? string ライブラリ
+--- @param scopeNamespace? string
 --- @return string | nil 翻訳, string | nil 言語
-local function get_translation(lang, key, t_source, library)
+local function get_translation(lang, key, t_source, library, scopeNamespace)
   local langs = { lang }
   if c.config.virt_text.fallback then
     langs = vim
@@ -36,14 +37,18 @@ local function get_translation(lang, key, t_source, library)
 
   for _, l in ipairs(langs) do
     local split_key = vim.split(key, c.config.key_separator, { plain = true })
-
     local namespace = nil
     if c.config.namespace_separator ~= nil then
-      local split_first_key = vim.split(split_key[1], c.config.namespace_separator, { plain = true })
-      namespace = split_first_key[1]
-      split_key[1] = split_first_key[2]
+      local split_first_key =
+        vim.split(split_key[1], c.config.namespace_separator, { plain = true })
+      if #split_first_key <= 1 then
+        namespace = nil
+      else
+        namespace = split_first_key[1]
+        split_key[1] = split_first_key[2]
+      end
     end
-
+    namespace = namespace or scopeNamespace
     local text = t_source:get_translation(l, split_key, library, namespace)
     if text ~= nil and type(text) == "string" then
       return text, l
@@ -71,7 +76,8 @@ function M.set_extmark(bufnr, current_language, t_source)
   for _, t_call in ipairs(t_calls) do
     local key_node = t_call.key_node
 
-    local text, lang = get_translation(current_language, t_call.key, t_source, library)
+    local text, lang =
+      get_translation(current_language, t_call.key, t_source, library, t_call.namespace)
     if text == nil or lang == nil then
       goto continue
     end
