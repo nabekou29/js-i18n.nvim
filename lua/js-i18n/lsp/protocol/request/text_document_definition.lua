@@ -27,7 +27,6 @@ local function handler(params, client)
 
   local key = t_call.key
   local namespace = t_call.namespace
-  vim.notify("key: " .. vim.inspect(key), vim.log.levels.INFO)
 
   for file, _ in pairs(t_source:get_translation_source_by_lang(lang, namespace)) do
     local bufnr = vim.api.nvim_create_buf(false, true)
