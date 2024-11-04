@@ -15,10 +15,7 @@ local function get_all_translation(translation, prefix, result, namespace)
     if type(value) == "table" then
       get_all_translation(value, full_key, result, namespace)
     else
-      -- Only add keys that contain namespaces
-      if full_key:find(namespace, 1, true) == 1 then
-        result[full_key] = value
-      end
+      result[full_key] = value
     end
   end
   return result
