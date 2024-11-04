@@ -17,6 +17,9 @@ function M.get_translation_files(dir)
     scan.scan_dir(dir, {
       search_pattern = "%.json$",
       on_insert = function(path)
+        if path:find("node_modules") then
+          return
+        end
         local match_s = regexp:match_str(path)
         if match_s then
           table.insert(result, path)
@@ -141,9 +144,22 @@ end
 
 --- 特定言語の翻訳リソースを取得する
 --- @param lang string 言語
+--- @param namespace string?
 --- @return table<string, table>
-function TranslationSource:get_translation_source_by_lang(lang)
-  return self._translations[lang] or {}
+function TranslationSource:get_translation_source_by_lang(lang, namespace)
+  local translations = self._translations[lang] or {}
+  local filtered_translations = {}
+
+if namespace then
+  for file, content in pairs(translations) do
+    if string.find(file, namespace .. ".json") then
+      filtered_translations[file] = content
+    end
+  end
+else
+  filtered_translations = translations
+end
+  return filtered_translations
 end
 
 --- 文言ファイルの監視を停止する
@@ -214,10 +230,11 @@ end
 --- @param lang string 言語
 --- @param key string[] キー
 --- @param library? string ライブラリ
+--- @param namespace? string
 --- @return any|string|nil translation 文言
 --- @return string|nil file 文言リソース
-function TranslationSource:get_translation(lang, key, library)
-  for file, json in pairs(self:get_translation_source_by_lang(lang)) do
+function TranslationSource:get_translation(lang, key, library, namespace)
+  for file, json in pairs(self:get_translation_source_by_lang(lang, namespace)) do
     local text = vim.tbl_get(json, unpack(key))
     if text then
       return text, file

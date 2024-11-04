@@ -2,17 +2,18 @@ local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
 
---- 全ての翻訳を取得する関数
+--- Get all translations with namespace
 --- @param translation I18n.TranslationSource
 --- @param prefix? string
 --- @param result? table<string, string>
+--- @param namespace string
 --- @return table<string, string>
-local function get_all_translation(translation, prefix, result)
+local function get_all_translation(translation, prefix, result, namespace)
   result = result or {}
   for key, value in pairs(translation) do
     local full_key = prefix and prefix .. c.config.key_separator .. key or key
     if type(value) == "table" then
-      get_all_translation(value, full_key, result)
+      get_all_translation(value, full_key, result, namespace)
     else
       result[full_key] = value
     end
@@ -20,7 +21,7 @@ local function get_all_translation(translation, prefix, result)
   return result
 end
 
---- 全てのキーを取得する関数
+--- Get all completion items based on namespace
 --- @param client I18n.Client
 --- @param bufnr number
 --- @param t_call FindTExpressionResultItem
@@ -30,10 +31,11 @@ local function get_completion_items(client, bufnr, t_call)
   local t_source = client.t_source_by_workspace[utils.get_workspace_root(bufnr)]
 
   local key_prefix = t_call.key_prefix or ""
+  local namespace = t_call.namespace or ""
 
   local translations = {}
-  for _, source in pairs(t_source:get_translation_source_by_lang(lang)) do
-    for key, value in pairs(get_all_translation(source)) do
+  for _, source in pairs(t_source:get_translation_source_by_lang(lang, namespace)) do
+    for key, value in pairs(get_all_translation(source, nil, nil, namespace)) do
       if key_prefix == "" then
         translations[key] = value
       else

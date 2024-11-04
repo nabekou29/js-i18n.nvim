@@ -201,7 +201,7 @@ function Client:edit_translation(lang, key)
       lang = self:get_language(bufnr)
     end
 
-    local function get_key()
+    local function get_t_call()
       local row, col = unpack(vim.api.nvim_win_get_cursor(0))
       local position = { line = row - 1, character = col }
 
@@ -209,11 +209,11 @@ function Client:edit_translation(lang, key)
       if not ok or not t_call then
         return
       end
-      return t_call.key
+      return t_call
     end
 
     -- キーを取得
-    local key = key or get_key()
+    local key = key or get_t_call().key
     if not key then
       vim.notify("Key not found", vim.log.levels.ERROR)
       return
@@ -227,11 +227,35 @@ function Client:edit_translation(lang, key)
       return
     end
 
+    local namespace = nil
+
+    if c.config.namespace_separator ~= nil then
+      local split_first_key = vim.split(split_key[1], c.config.namespace_separator, { plain = true })
+      if #split_first_key <= 1 then
+        namespace = nil
+      else
+        namespace = split_first_key[1]
+        split_key[1] = split_first_key[2]
+      end
+    end
+    namespace = namespace or get_t_call().namespace
+
     -- キーに一致する文言があれば編集、なければ追加
-    local old_translation, file = ws_t_source:get_translation(lang, split_key)
+    local old_translation, file = ws_t_source:get_translation(lang, split_key, nil, namespace)
     if not file then
-      local sources = ws_t_source:get_translation_source_by_lang(lang)
-      local files = vim.tbl_keys(sources)
+      local sources = ws_t_source:get_translation_source_by_lang(lang, namespace)
+
+      local all_files = vim.tbl_keys(sources)
+
+      local files = {}
+
+      local i = 1
+      for _, file in pairs(all_files) do
+        if namespace == nil or string.find(file, namespace .. ".json") then
+          files[i] = file
+          i = i + 1
+        end
+      end
 
       -- カレントディレクトリからの相対パスに変換
       files = vim.tbl_map(function(f)

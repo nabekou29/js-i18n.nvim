@@ -26,8 +26,9 @@ local function handler(params, client)
   end
 
   local key = t_call.key
+  local namespace = t_call.namespace
 
-  for file, _ in pairs(t_source:get_translation_source_by_lang(lang)) do
+  for file, _ in pairs(t_source:get_translation_source_by_lang(lang, namespace)) do
     local bufnr = vim.api.nvim_create_buf(false, true)
     local content = Path:new(file):read()
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))

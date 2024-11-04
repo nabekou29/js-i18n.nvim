@@ -24,11 +24,24 @@ local function handler(params, client)
   local key = t_call.key
   local keys = vim.split(key, c.config.key_separator, { plain = true })
 
+  local namespace = nil
+
+  if c.config.namespace_separator ~= nil then
+    local split_first_key = vim.split(keys[1], c.config.namespace_separator, { plain = true })
+    if #split_first_key <= 1 then
+      namespace = nil
+    else
+      namespace = split_first_key[1]
+      keys[1] = split_first_key[2]
+    end
+  end
+  namespace = namespace or t_call.namespace
+
   -- 各言語の翻訳を表示
   --- @type string[]
   local contents = {}
   for _, lang in ipairs(t_source:get_available_languages()) do
-    local translation = t_source:get_translation(lang, keys)
+    local translation = t_source:get_translation(lang, keys, nil, namespace)
     if translation then
       if type(translation) == "string" then
         table.insert(contents, lang .. ": `" .. translation .. "`")
