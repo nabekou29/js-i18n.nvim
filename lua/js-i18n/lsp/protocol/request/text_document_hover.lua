@@ -24,11 +24,13 @@ local function handler(params, client)
   local key = t_call.key
   local keys = vim.split(key, c.config.key_separator, { plain = true })
 
+  local library = utils.detect_library(bufnr)
+
   -- 各言語の翻訳を表示
   --- @type string[]
   local contents = {}
   for _, lang in ipairs(t_source:get_available_languages()) do
-    local translation = t_source:get_translation(lang, keys)
+    local translation = t_source:get_translation(lang, keys, library)
     if translation then
       if type(translation) == "string" then
         table.insert(contents, lang .. ": `" .. translation .. "`")
