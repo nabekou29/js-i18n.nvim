@@ -2,72 +2,107 @@ local helper = require("tests.helper")
 
 local analyzer = require("js-i18n.analyzer")
 
---- test helper
-
---- @param get_project function(): test.Project
---- @param file string
---- @param assertion function(result: FindTExpressionResultItem[], utils: table)
-local function test_analyze_file(get_project, file, assertion)
-  it("should find 't' function calls in " .. file, function()
-    -- Arrange
-    local project = get_project()
-    vim.cmd("e " .. project.path .. "/test_analyzer/" .. file)
-
-    -- Act
-    local result = analyzer.find_call_t_expressions(0)
-
-    local assert_item = function(idx, exp)
-      local item = result[idx]
-
-      local function assert_key_value(key)
-        -- stylua: ignore start
-        assert(
-          exp[key] == item[key],
-          string.format("result[%d].%s to be equal.\nPassed:\n(%s) %s\nExpected:\n(%s) %s",
-            idx, key, type(item[key]), item[key], type(exp[key]), exp[key])
-        )
-        -- stylua: ignore end
-      end
-      assert_key_value("key")
-      assert_key_value("key_prefix")
-      assert_key_value("key_arg")
-    end
-
-    local assert_items = function(exp_list)
-      assert.are.equal(#exp_list, #result)
-      for idx, exp in ipairs(exp_list) do
-        assert_item(idx, exp)
-      end
-    end
-
-    -- Assert
-    assertion(result, {
-      assert_item = assert_item,
-      assert_items = assert_items,
-    })
+describe("analyzer.get_node_for_key", function()
+  --- @type test.Project
+  local project = nil
+  before_each(function()
+    project = helper.use_project("i18next")
   end)
-end
 
---- @param get_project function(): test.Project
---- @param text string
---- @param expected boolean
-local function test_find_t_call(get_project, text, expected)
-  local assertion = expected and "should" or "should NOT"
-  it(assertion .. " find 't' function calls in `" .. text .. "`", function()
-    -- Arrange
-    local project = get_project()
-    vim.cmd("e " .. project.path .. "/index.js")
-    vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.split(text, "\n"))
-
-    -- Act
-    local result = analyzer.find_call_t_expressions(0)
-
-    -- Assert
-    assert.are.equal(expected and 1 or 0, #result)
+  after_each(function()
+    vim.cmd("bufdo bd!")
   end)
-end
+
+  local tests = {
+    -- stylua: ignore start
+    { key = "exists-key", exp_key_row = 2 },
+    { key = "nested.key", exp_key_row = 4 },
+    { key = "nested",     exp_key_row = 3 },
+    -- stylua: ignore end
+  }
+
+  for _, test in ipairs(tests) do
+    it("#hoge " .. test.key, function()
+      -- Arrange
+      vim.cmd("e " .. project.path .. "/locales/en/translation.json")
+
+      -- Act
+      local result = analyzer.get_node_for_key(0, vim.split(test.key, ".", { plain = true }))
+
+      -- Assert
+      if not result then
+        error("Key not found: " .. test.key)
+      end
+      local key_row = result:start() + 1
+      assert.are.equal(test.exp_key_row, key_row)
+    end)
+  end
+end)
 
 describe("analyzer.find_call_t_expressions", function()
+  --- @param get_project function(): test.Project
+  --- @param file string
+  --- @param assertion function(result: FindTExpressionResultItem[], utils: table)
+  local function test_analyze_file(get_project, file, assertion)
+    it("should find 't' function calls in " .. file, function()
+      --Arrange
+      local project = get_project()
+      vim.cmd("e " .. project.path .. "/test_analyzer/" .. file)
+
+      -- Act
+      local result = analyzer.find_call_t_expressions(0)
+
+      local assert_item = function(idx, exp)
+        local item = result[idx]
+
+        local function assert_key_value(key)
+          -- stylua: ignore start
+          assert(
+            exp[key] == item[key],
+            string.format("result[%d].%s to be equal.\nPassed:\n(%s) %s\nExpected:\n(%s) %s",
+              idx, key, type(item[key]), item[key], type(exp[key]), exp[key])
+          )
+          -- stylua: ignore end
+        end
+        assert_key_value("key")
+        assert_key_value("key_prefix")
+        assert_key_value("key_arg")
+      end
+
+      local assert_items = function(exp_list)
+        assert.are.equal(#exp_list, #result)
+        for idx, exp in ipairs(exp_list) do
+          assert_item(idx, exp)
+        end
+      end
+
+      -- Assert
+      assertion(result, {
+        assert_item = assert_item,
+        assert_items = assert_items,
+      })
+    end)
+  end
+
+  --- @param get_project function(): test.Project
+  --- @param text string
+  --- @param expected boolean
+  local function test_find_t_call(get_project, text, expected)
+    local assertion = expected and "should" or "should NOT"
+    it(assertion .. " find 't' function calls in `" .. text .. "`", function()
+      -- Arrange
+      local project = get_project()
+      vim.cmd("e " .. project.path .. "/index.js")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.split(text, "\n"))
+
+      -- Act
+      local result = analyzer.find_call_t_expressions(0)
+
+      -- Assert
+      assert.are.equal(expected and 1 or 0, #result)
+    end)
+  end
+
   describe("when using 'i18next'", function()
     --- @type test.Project
     local project = nil

@@ -73,52 +73,51 @@ end
 --- Treesitterパーサーをセットアップしてキーにマッチするノードを取得する関数
 --- @param bufnr number 文言ファイルのバッファ番号
 --- @param keys string[] キー
---- @param start? integer 開始位置
---- @param stop? integer 終了位置
 --- @return TSNode | nil, string | nil
-function M.get_node_for_key(bufnr, keys, start, stop)
-  keys = { unpack(keys) }
-  local key = table.concat(keys, c.config.key_separator)
+function M.get_node_for_key(bufnr, keys)
   local ts = vim.treesitter
 
   local parser = ts.get_parser(bufnr, "json")
   local tree = parser:parse()[1]
   local root = tree:root()
 
-  local query =
-    ts.query.parse("json", '(pair key: (string) @key (#eq? @key "\\"' .. keys[1] .. '\\""))')
+  local json_node = root
+  for i, k in ipairs(keys) do
+    local query = ts.query.parse("json", [[
+      (pair
+        key: (string) @key (#eq? @key "\"]] .. k .. [[\"")
+        value: [(object)(string)] @value
+      )
+    ]])
 
-  --- @type TSNode[]
-  local match_nodes = {}
-
-  for _, match, _ in query:iter_matches(root, bufnr, start, stop) do
-    for _, node in ipairs(match) do
-      table.insert(match_nodes, node)
-    end
-  end
-
-  --- @type TSNode
-  local node = vim
-    .iter(match_nodes)
-    -- find min depth
-    :fold(match_nodes[1], function(acc, node)
-      if calculate_node_depth(node) < calculate_node_depth(acc) then
-        return node
-      else
-        return acc
+    local key_node = nil
+    local key_node_depth = 9999
+    local value_node = nil
+    local value_node_depth = 9999
+    for id, node, _ in query:iter_captures(json_node, bufnr) do
+      local name = query.captures[id]
+      local depth = calculate_node_depth(node)
+      if name == "key" and depth < key_node_depth then
+        key_node = node
+        key_node_depth = depth
+      elseif name == "value" and depth < value_node_depth then
+        value_node = node
+        value_node_depth = depth
       end
-    end)
-
-  if #keys == 1 then
-    return node, nil
-  elseif node ~= nil then
-    table.remove(keys, 1)
-    local parent = node:parent()
-    if parent ~= nil then
-      return M.get_node_for_key(bufnr, keys, parent:start(), parent:end_())
     end
+
+    if key_node == nil or value_node == nil then
+      break
+    end
+
+    if i == #keys then
+      return key_node, nil
+    end
+
+    json_node = value_node
   end
 
+  local key = table.concat(keys, c.config.key_separator)
   return nil, "Key not found: " .. key
 end
 
