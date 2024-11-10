@@ -4,18 +4,30 @@ local utils = require("js-i18n.utils")
 
 --- 全ての翻訳を取得する関数
 --- @param translation I18n.TranslationSource
+--- @param library? string ライブラリ
 --- @param prefix? string
 --- @param result? table<string, string>
 --- @return table<string, string>
-local function get_all_translation(translation, prefix, result)
+local function get_all_translation(translation, library, prefix, result)
   result = result or {}
   for key, value in pairs(translation) do
     local full_key = prefix and prefix .. c.config.key_separator .. key or key
     if type(value) == "table" then
-      get_all_translation(value, full_key, result)
+      get_all_translation(value, library, full_key, result)
     else
-      result[full_key] = value
+      if library == utils.Library.I18Next then
+        for _, suffix in ipairs(c.config.libraries.i18next.plural_suffixes) do
+          -- 末尾がsuffixで終わる場合
+          if full_key:sub(-#suffix) == suffix then
+            local key_without_suffix = full_key:sub(1, -#suffix - 1)
+            result[key_without_suffix] = result[key_without_suffix] or value
+            goto continue
+          end
+        end
+      end
+      result[full_key] = result[full_key] or value
     end
+    ::continue::
   end
   return result
 end
@@ -28,12 +40,13 @@ end
 local function get_completion_items(client, bufnr, t_call)
   local lang = client:get_language(bufnr)
   local t_source = client.t_source_by_workspace[utils.get_workspace_root(bufnr)]
+  local library = utils.detect_library(bufnr)
 
   local key_prefix = t_call.key_prefix or ""
 
   local translations = {}
   for _, source in pairs(t_source:get_translation_source_by_lang(lang)) do
-    for key, value in pairs(get_all_translation(source)) do
+    for key, value in pairs(get_all_translation(source, library)) do
       if key_prefix == "" then
         translations[key] = value
       else
