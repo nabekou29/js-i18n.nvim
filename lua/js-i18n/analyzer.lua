@@ -77,6 +77,7 @@ end
 --- @param stop? integer 終了位置
 --- @return TSNode | nil, string | nil
 function M.get_node_for_key(bufnr, keys, start, stop)
+  keys = { unpack(keys) }
   local key = table.concat(keys, c.config.key_separator)
   local ts = vim.treesitter
 
