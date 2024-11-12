@@ -155,24 +155,6 @@ function M.escape_translation_text(str)
   return (str:gsub(".", escapes))
 end
 
---- Treesitter のノードから指定したタイプの親ノードを取得する
---- @param node TSNode
---- @param type_ string
-function M.find_parent_by_type(node, type_)
-  if node:type() == type_ then
-    return node
-  end
-
-  local parent = node:parent()
-  while parent ~= nil do
-    if parent:type() == type_ then
-      return parent
-    end
-    parent = parent:parent()
-  end
-  return nil
-end
-
 --- テーブルに値をセットする
 --- @param tbl table テーブル
 --- @param value any 値

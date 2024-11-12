@@ -1,4 +1,4 @@
-Output concept.mp4
+Output js-i18n.mp4
 
 Require nvim
 
@@ -13,7 +13,7 @@ Hide
 
 Type@0 "nvim -u config.lua projects/i18next/concept.jsx" Enter
 
-Sleep 5 # load lazy.nvim
+Sleep 10 # load lazy.nvim
 # Type q # lazy.nvim がエラーになるので閉じる
 
 Sleep 1

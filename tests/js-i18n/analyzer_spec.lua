@@ -22,7 +22,7 @@ describe("analyzer.get_node_for_key", function()
   }
 
   for _, test in ipairs(tests) do
-    it("#hoge " .. test.key, function()
+    it("should return node for key: " .. test.key, function()
       -- Arrange
       vim.cmd("e " .. project.path .. "/locales/en/translation.json")
 
@@ -36,6 +36,35 @@ describe("analyzer.get_node_for_key", function()
       local key_row = result:start() + 1
       assert.are.equal(test.exp_key_row, key_row)
     end)
+  end
+end)
+
+describe("analyzer.get_key_at_cursor", function()
+  after_each(function()
+    vim.cmd("bufdo bd!")
+  end)
+
+  local tests = {
+    { line = 1, char = 4, expected = "1" },
+    { line = 2, char = 6, expected = "1.1-1" },
+    { line = 3, char = 8, expected = "1.1-1.1-1-1" },
+  }
+
+  for _, test in ipairs(tests) do
+    it(
+      "should return key at cursor (line: " .. test.line .. ", char: " .. test.char .. ")",
+      function()
+        -- Arrange
+        vim.cmd("e tests/data/test_get_key_at_cursor.json")
+        vim.api.nvim_win_set_cursor(0, { test.line, test.char })
+
+        -- Act
+        local result = analyzer.get_key_at_cursor(0, { line = test.line, character = test.char })
+
+        -- Assert
+        assert.are.equal(test.expected, vim.fn.join(result, "."))
+      end
+    )
   end
 end)
 
