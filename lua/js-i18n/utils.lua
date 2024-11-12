@@ -150,6 +150,7 @@ function M.escape_translation_text(str)
     ["\n"] = "\\n",
     ["\r"] = "\\r",
     ["\t"] = "\\t",
+    ['"'] = '\\"',
   }
   return (str:gsub(".", escapes))
 end

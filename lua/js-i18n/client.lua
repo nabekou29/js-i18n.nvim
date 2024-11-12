@@ -258,7 +258,7 @@ function Client:edit_translation(lang, key)
     if old_translation then
       local input = async_ui.input({
         prompt = "Edit translation: ",
-        default = utils.escape_translation_text(old_translation),
+        default = old_translation,
       })
       translation = input
     else
