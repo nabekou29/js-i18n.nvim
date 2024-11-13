@@ -24,7 +24,7 @@ local function handler(params, client)
   local key = t_call.key
   local keys = vim.split(key, c.config.key_separator, { plain = true })
 
-  local library = utils.detect_library(bufnr)
+  local library = utils.detect_library(workspace_dir)
 
   local namespace = nil
 

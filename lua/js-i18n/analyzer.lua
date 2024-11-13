@@ -1,3 +1,6 @@
+local Path = require("plenary.path")
+local scan = require("plenary.scandir")
+
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
 
@@ -19,11 +22,11 @@ local library_query = {
 --- @param file string ファイルパス
 --- @return string|nil クエリ
 function M.load_query_from_file(file)
-  local cache = {}
+  local query_cache = {}
 
   local function load_query_from_file(file)
-    if cache[file] ~= nil then
-      return cache[file]
+    if query_cache[file] ~= nil then
+      return query_cache[file]
     end
 
     local f = io.open(file, "r")
@@ -34,7 +37,7 @@ function M.load_query_from_file(file)
     local query = f:read("*a")
     f:close()
 
-    cache[file] = query
+    query_cache[file] = query
     return query
   end
 
@@ -239,6 +242,85 @@ local function parse_call_t(target_node, bufnr, query)
   }
 end
 
+--- @type table<string, table<string, FindTExpressionResultItem[]>>
+local reference_table = {}
+local reference_preloaded = {}
+
+function M.preload(bufnr)
+  local workspace_dir = utils.get_workspace_root(bufnr)
+  if reference_preloaded[workspace_dir] then
+    return
+  end
+
+  M.load_all_call_t_expressions(workspace_dir)
+  reference_preloaded[workspace_dir] = true
+end
+
+function M.find_references_by_key(workspace_dir, key)
+  local result = {}
+  for path, t_calls in pairs(reference_table[workspace_dir] or {}) do
+    for _, t_call in ipairs(t_calls) do
+      if t_call.key == key then
+        table.insert(result, {
+          path = path,
+          t_call = t_call,
+        })
+      end
+    end
+  end
+  return result
+end
+
+-- プラグインの起動時に、全てのファイルを走査して t 関数を取得する
+function M.load_all_call_t_expressions(workspace_dir)
+  vim.print("load_all_call_t_expressions", workspace_dir)
+  scan.scan_dir(workspace_dir, {
+    search_pattern = function(entry)
+      if entry:match("node_modules") then
+        return false
+      end
+      return entry:match("%.jsx?$") or entry:match("%.tsx?$")
+    end,
+    on_insert = function(path)
+      M.load_call_t_expressions(workspace_dir, path)
+    end,
+  })
+end
+
+function M.load_call_t_expressions(workspace_dir, path)
+  if path == nil or path == "" then
+    return
+  end
+
+  reference_table[workspace_dir] = reference_table[workspace_dir] or {}
+  local ref_table = reference_table[workspace_dir]
+
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  local content = Path:new(path):read()
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))
+  vim.api.nvim_buf_set_option(
+    bufnr,
+    "filetype",
+    vim.filetype.match({ filename = path }) or "typescriptreact"
+  )
+
+  local t_calls = M.find_call_t_expressions_(bufnr)
+  ref_table[path] = t_calls
+
+  vim.api.nvim_buf_delete(bufnr, { force = true })
+end
+
+--- t関数を含むノードを検索する
+--- @param bufnr integer バッファ番号
+--- @param path? string ファイルパス
+--- @return FindTExpressionResultItem[]
+function M.find_call_t_expressions(bufnr, path)
+  local workspace_dir = utils.get_workspace_root(bufnr)
+  local path = path or vim.api.nvim_buf_get_name(bufnr)
+
+  return M.find_call_t_expressions_(bufnr)
+end
+
 --- @class FindTExpressionResultItem
 --- @field node TSNode t関数のノード
 --- @field key_node TSNode t関数のキーのノード
@@ -251,11 +333,12 @@ end
 --- t関数を含むノードを検索する
 --- @param bufnr integer バッファ番号
 --- @return FindTExpressionResultItem[]
-function M.find_call_t_expressions(bufnr)
+function M.find_call_t_expressions_(bufnr)
   local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
   if not ok then
     return {}
   end
+
   local tree = parser:parse()[1]
   local root_node = tree:root()
   local language = parser:lang()

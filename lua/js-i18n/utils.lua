@@ -19,12 +19,10 @@ function M.get_workspace_root(bufnr)
 end
 
 --- 使用しているライブラリを取得する
---- @param bufnr number バッファ番号
+--- @param workspace_dir string プロジェクトのルートディレクトリ
 --- @return string|nil ライブラリの識別子
-function M.detect_library(bufnr)
-  local root = M.get_workspace_root(bufnr)
-
-  local ok, package_json = pcall(vim.fn.readfile, root .. "/package.json")
+function M.detect_library(workspace_dir)
+  local ok, package_json = pcall(vim.fn.readfile, workspace_dir .. "/package.json")
   if not ok then
     return nil
   end
