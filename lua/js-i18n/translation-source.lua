@@ -12,6 +12,7 @@ local M = {}
 --- @return string[]
 function M.get_translation_files(dir)
   local result = {}
+  -- OPTIMIZE: pattern は on_insert の中で回すほうがいい
   for _, pattern in ipairs(c.config.translation_source) do
     local regexp = vim.regex(vim.fn.glob2regpat(pattern))
     scan.scan_dir(dir, {

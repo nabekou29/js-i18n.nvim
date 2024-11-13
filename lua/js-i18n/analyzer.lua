@@ -19,11 +19,11 @@ local library_query = {
 --- @param file string ファイルパス
 --- @return string|nil クエリ
 function M.load_query_from_file(file)
-  local cache = {}
+  local query_cache = {}
 
   local function load_query_from_file(file)
-    if cache[file] ~= nil then
-      return cache[file]
+    if query_cache[file] ~= nil then
+      return query_cache[file]
     end
 
     local f = io.open(file, "r")
@@ -34,7 +34,7 @@ function M.load_query_from_file(file)
     local query = f:read("*a")
     f:close()
 
-    cache[file] = query
+    query_cache[file] = query
     return query
   end
 

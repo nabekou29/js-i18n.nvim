@@ -15,6 +15,7 @@ local function handler(params, _client)
     capabilities = {
       textDocumentSync = 1,
       definitionProvider = true,
+      referencesProvider = true,
       hoverProvider = true,
       completionProvider = {},
       codeActionProvider = {},
