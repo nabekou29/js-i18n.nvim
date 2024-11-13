@@ -276,4 +276,17 @@ function Client:edit_translation(lang, key)
   end)()
 end
 
+--- カーソル上のキーを取得する
+function Client:get_key_on_cursor()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+  local position = { line = row - 1, character = col }
+
+  local keys = analyzer.get_key_at_cursor(bufnr, position)
+  if not keys then
+    return
+  end
+  return vim.fn.join(keys, c.config.key_separator)
+end
+
 return Client

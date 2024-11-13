@@ -121,6 +121,42 @@ function M.get_node_for_key(bufnr, keys)
   return nil, "Key not found: " .. key
 end
 
+--- 文言ファイルのカーソルの位置の key の値を取得する関数
+--- @param bufnr number バッファ番号
+--- @param position lsp.Position カーソルの位置
+--- @return string[] | nil value カーソルの位置の key
+function M.get_key_at_cursor(bufnr, position)
+  local ts = vim.treesitter
+
+  -- カーソルの位置のノードを取得
+  local row = position.line
+  local col = position.character
+  local cursor_node = ts.get_node({ bufnr = bufnr, pos = { row, col } })
+  if cursor_node == nil then
+    return nil
+  end
+
+  local pair_node = cursor_node:type() == "pair" and cursor_node
+    or M.find_closest_node(cursor_node, { "pair" })
+
+  local keys = {}
+
+  -- 親の pair ノードをたどりながらキーを取得
+  while pair_node do
+    local key_node = pair_node:field("key")[1]:named_child(0)
+    if key_node == nil then
+      break
+    end
+
+    -- 先頭に挿入
+    table.insert(keys, 1, ts.get_node_text(key_node, bufnr))
+
+    pair_node = M.find_closest_node(pair_node, { "pair" })
+  end
+
+  return keys
+end
+
 --- @class GetTDetail
 --- @field namespace string
 --- @field key_prefix string
