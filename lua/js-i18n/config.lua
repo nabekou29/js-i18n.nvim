@@ -55,6 +55,7 @@ end
 --- @field primary_language string[] 優先表示する言語
 --- @field translation_source string[] 翻訳ソースのパターン
 --- @field detect_language fun(path: string): string ファイルパスから言語を検出する関数
+--- @field namespace_separator string?
 --- @field key_separator string キーのセパレータ
 --- @field virt_text I18n.VirtTextConfig バーチャルテキストの設定
 --- @field diagnostic I18n.Diagnostic 診断の設定
@@ -78,6 +79,7 @@ local default_config = {
   primary_language = {},
   translation_source = { "**/{locales,messages}/*.json" },
   detect_language = M.default_detect_language,
+  namespace_separator = nil,
   key_separator = ".",
   virt_text = {
     enabled = true,

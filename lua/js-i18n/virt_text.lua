@@ -36,7 +36,15 @@ local function get_translation(lang, key, t_source, library)
 
   for _, l in ipairs(langs) do
     local split_key = vim.split(key, c.config.key_separator, { plain = true })
-    local text = t_source:get_translation(l, split_key, library)
+
+    local namespace = nil
+    if c.config.namespace_separator ~= nil then
+      local split_first_key = vim.split(split_key[1], c.config.namespace_separator, { plain = true })
+      namespace = split_first_key[1]
+      split_key[1] = split_first_key[2]
+    end
+
+    local text = t_source:get_translation(l, split_key, library, namespace)
     if text ~= nil and type(text) == "string" then
       return text, l
     end
@@ -76,7 +84,7 @@ function M.set_extmark(bufnr, current_language, t_source)
       config = c.config,
     })
     if type(virt_text) == "string" then
-      virt_text = { { virt_text, "Comment" } }
+      virt_text = { { virt_text, "@i18n.translation" } }
     end
 
     if c.config.virt_text.conceal_key then
