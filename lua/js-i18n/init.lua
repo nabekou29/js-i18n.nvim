@@ -141,6 +141,16 @@ i18n.setup = function(opts)
       )
     end,
   })
+
+  -- カーソル上のキーを取得する
+  vim.api.nvim_create_user_command("I18nCopyKey", function(_)
+    local key = i18n.client:get_key_on_cursor()
+    if key == nil or key == "" then
+      vim.notify("No key found", vim.log.levels.ERROR)
+      return
+    end
+    vim.fn.setreg("*", key)
+  end, {})
 end
 
 return i18n

@@ -4,19 +4,31 @@ local utils = require("js-i18n.utils")
 
 --- Get all translations with namespace
 --- @param translation I18n.TranslationSource
+--- @param library? string ライブラリ
 --- @param prefix? string
 --- @param result? table<string, string>
 --- @param namespace string
 --- @return table<string, string>
-local function get_all_translation(translation, prefix, result, namespace)
+local function get_all_translation(translation, library, prefix, result, namespace)
   result = result or {}
   for key, value in pairs(translation) do
     local full_key = prefix and prefix .. c.config.key_separator .. key or key
     if type(value) == "table" then
-      get_all_translation(value, full_key, result, namespace)
+      get_all_translation(value, library, full_key, result, namespace)
     else
-      result[full_key] = value
+      if library == utils.Library.I18Next then
+        for _, suffix in ipairs(c.config.libraries.i18next.plural_suffixes) do
+          -- 末尾がsuffixで終わる場合
+          if full_key:sub(-#suffix) == suffix then
+            local key_without_suffix = full_key:sub(1, -#suffix - 1)
+            result[key_without_suffix] = result[key_without_suffix] or value
+            goto continue
+          end
+        end
+      end
+      result[full_key] = result[full_key] or value
     end
+    ::continue::
   end
   return result
 end
@@ -29,13 +41,14 @@ end
 local function get_completion_items(client, bufnr, t_call)
   local lang = client:get_language(bufnr)
   local t_source = client.t_source_by_workspace[utils.get_workspace_root(bufnr)]
+  local library = utils.detect_library(bufnr)
 
   local key_prefix = t_call.key_prefix or ""
   local namespace = t_call.namespace or ""
 
   local translations = {}
   for _, source in pairs(t_source:get_translation_source_by_lang(lang, namespace)) do
-    for key, value in pairs(get_all_translation(source, nil, nil, namespace)) do
+    for key, value in pairs(get_all_translation(source, library, nil, nil, namespace)) do
       if key_prefix == "" then
         translations[key] = value
       else

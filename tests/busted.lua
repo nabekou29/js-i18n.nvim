@@ -8,7 +8,7 @@ require("lazy.minit").busted({
   spec = {
     "nvim-lua/plenary.nvim",
     "neovim/nvim-lspconfig",
-    { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate javascript typescript tsx" },
+    { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate json javascript typescript tsx" },
     { dir = vim.uv.cwd(), opts = {} },
   },
 })

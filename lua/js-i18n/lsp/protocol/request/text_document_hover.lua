@@ -24,6 +24,8 @@ local function handler(params, client)
   local key = t_call.key
   local keys = vim.split(key, c.config.key_separator, { plain = true })
 
+  local library = utils.detect_library(bufnr)
+
   local namespace = nil
 
   if c.config.namespace_separator ~= nil then
@@ -41,7 +43,7 @@ local function handler(params, client)
   --- @type string[]
   local contents = {}
   for _, lang in ipairs(t_source:get_available_languages()) do
-    local translation = t_source:get_translation(lang, keys, nil, namespace)
+    local translation = t_source:get_translation(lang, keys, library, namespace)
     if translation then
       if type(translation) == "string" then
         table.insert(contents, lang .. ": `" .. translation .. "`")
