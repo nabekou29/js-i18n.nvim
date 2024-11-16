@@ -239,9 +239,10 @@ function Client:edit_translation(lang, key)
       end
     end
     namespace = namespace or get_t_call().namespace
+    local library = utils.detect_library(bufnr)
 
     -- キーに一致する文言があれば編集、なければ追加
-    local old_translation, file = ws_t_source:get_translation(lang, split_key, nil, namespace)
+    local old_translation, file = ws_t_source:get_translation(lang, split_key, library, namespace)
     if not file then
       local sources = ws_t_source:get_translation_source_by_lang(lang, namespace)
 
