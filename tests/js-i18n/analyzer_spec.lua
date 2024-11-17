@@ -79,7 +79,7 @@ describe("analyzer.find_call_t_expressions", function()
       vim.cmd("e " .. project.path .. "/test_analyzer/" .. file)
 
       -- Act
-      local result = analyzer.find_call_t_expressions(0)
+      local result = analyzer.find_call_t_expressions_from_buf(0)
 
       local assert_item = function(idx, exp)
         local item = result[idx]
@@ -125,7 +125,7 @@ describe("analyzer.find_call_t_expressions", function()
       vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.split(text, "\n"))
 
       -- Act
-      local result = analyzer.find_call_t_expressions(0)
+      local result = analyzer.find_call_t_expressions_from_buf(0)
 
       -- Assert
       assert.are.equal(expected and 1 or 0, #result)
@@ -228,7 +228,7 @@ describe("analyzer.find_call_t_expressions", function()
       vim.api.nvim_buf_set_lines(0, 0, -1, false, { "t('key1', { value: t('key2') })" })
 
       -- Act
-      local result = analyzer.find_call_t_expressions(0)
+      local result = analyzer.find_call_t_expressions_from_buf(0)
 
       -- Assert
       assert.are.equal(2, #result)

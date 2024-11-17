@@ -56,17 +56,17 @@ function ReferenceTable:load_path(path)
       if ft == "typescript" then
         return "typescript"
       elseif ft == "typescriptreact" then
-        return "typescript"
+        return "tsx"
       elseif ft == "javascript" then
         return "javascript"
       elseif ft == "javascriptreact" then
         return "javascript"
       end
-      return "typescript"
+      return nil
     end)()
     local content = Path:new(path):read()
 
-    local result = analyzer.find_call_t_expressions_(content, lib, lang)
+    local result = analyzer.find_call_t_expressions(content, lib, lang)
     self._ref_table[path] = result
 
     self._ref_processing[path] = false
@@ -85,8 +85,12 @@ function ReferenceTable:wait_processed()
     if not processing then
       break
     end
-    vim.wait(100)
+    vim.wait(50)
   end
+end
+
+function ReferenceTable:is_processing(path)
+  return self._ref_processing[path] ~= nil and not self._ref_processing[path]
 end
 
 --- @class ReferenceTable__find_by_key_result
@@ -97,6 +101,7 @@ end
 --- @param key string キー
 --- @return ReferenceTable__find_by_key_result[]
 function ReferenceTable:find_by_key(key)
+  self:wait_processed()
   local result = {}
   for path, t_calls in pairs(self._ref_table) do
     for _, t_call in ipairs(t_calls) do

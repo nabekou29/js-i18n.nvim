@@ -242,9 +242,9 @@ end
 --- t関数を含むノードを検索する
 --- @param bufnr integer バッファ番号
 --- @return FindTExpressionResultItem[]
-function M.find_call_t_expressions(bufnr)
+function M.find_call_t_expressions_from_buf(bufnr)
   local workspace_dir = utils.get_workspace_root(bufnr)
-  return M.find_call_t_expressions_(bufnr, utils.detect_library(workspace_dir))
+  return M.find_call_t_expressions(bufnr, utils.detect_library(workspace_dir))
 end
 
 --- @class FindTExpressionResultItem
@@ -261,7 +261,7 @@ end
 --- @param lib? string ライブラリ
 --- @param lang? string 言語
 --- @return FindTExpressionResultItem[]
-function M.find_call_t_expressions_(source, lib, lang)
+function M.find_call_t_expressions(source, lib, lang)
   local ok, parser = pcall(function()
     if type(source) == "string" then
       if lang == nil then
@@ -382,7 +382,7 @@ end
 --- @return boolean ok カーソルが t 関数の引数内にあるかどうか
 --- @return FindTExpressionResultItem | nil result カーソルが t 関数の引数内にある場合は t 関数の情報
 function M.check_cursor_in_t_argument(bufnr, position)
-  local t_calls = M.find_call_t_expressions(bufnr)
+  local t_calls = M.find_call_t_expressions_from_buf(bufnr)
 
   for _, t_call in ipairs(t_calls) do
     local key_arg_node = t_call.key_arg_node

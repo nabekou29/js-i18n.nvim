@@ -28,7 +28,7 @@ function M.check(client, uri)
   --- @type lsp.Diagnostic[]
   local diagnostics = {}
 
-  local t_calls = analyzer.find_call_t_expressions(bufnr)
+  local t_calls = analyzer.find_call_t_expressions_from_buf(bufnr)
   for _, t_call in ipairs(t_calls) do
     local key = t_call.key
     local keys = vim.split(key, c.config.key_separator, { plain = true })
