@@ -26,11 +26,19 @@ local function handler(params, client)
 
   local library = utils.detect_library(bufnr)
 
+  local namespace = nil
+
+  if c.config.namespace_separator ~= nil then
+    local split_first_key = vim.split(keys[1], c.config.namespace_separator, { plain = true })
+    namespace = split_first_key[1]
+    keys[1] = split_first_key[2]
+  end
+
   -- 各言語の翻訳を表示
   --- @type string[]
   local contents = {}
   for _, lang in ipairs(t_source:get_available_languages()) do
-    local translation = t_source:get_translation(lang, keys, library)
+    local translation = t_source:get_translation(lang, keys, library, namespace)
     if translation then
       if type(translation) == "string" then
         table.insert(contents, lang .. ": `" .. translation .. "`")
