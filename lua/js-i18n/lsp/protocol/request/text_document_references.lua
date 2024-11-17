@@ -1,8 +1,6 @@
-local Path = require("plenary.path")
-local scan = require("plenary.scandir")
-
 local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
+local reference_table = require("js-i18n.reference_table")
 local utils = require("js-i18n.utils")
 
 --- ハンドラ
@@ -22,8 +20,10 @@ local function handler(params, client)
 
   local key = table.concat(keys, c.config.key_separator)
 
-  analyzer.preload(bufnr)
-  local refs = analyzer.find_references_by_key(workspace_dir, key)
+  local ref_table = reference_table.ReferenceTable.new({ workspace_dir = workspace_dir })
+  ref_table:load_all()
+  ref_table:wait_processed()
+  local refs = ref_table:find_by_key(key)
 
   local result = {}
   for _, ref in ipairs(refs) do

@@ -1,6 +1,3 @@
-local Path = require("plenary.path")
-local scan = require("plenary.scandir")
-
 local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
 
@@ -167,20 +164,20 @@ end
 
 --- t関数の取得に関する情報を解析する
 --- @param target_node TSNode t関数取得のノード
---- @param bufnr integer バッファ番号
+--- @param source (integer|string) バッファ番号 or ソース
 --- @param query vim.treesitter.Query クエリ
 --- @return GetTDetail|nil
-local function parse_get_t(target_node, bufnr, query)
+local function parse_get_t(target_node, source, query)
   local namespace = ""
   local key_prefix = ""
 
-  for id, node, _ in query:iter_captures(target_node, bufnr, 0, -1) do
+  for id, node, _ in query:iter_captures(target_node, source, 0, -1) do
     local name = query.captures[id]
 
     if name == "i18n.namespace" then
-      namespace = vim.treesitter.get_node_text(node, bufnr)
+      namespace = vim.treesitter.get_node_text(node, source)
     elseif name == "i18n.key_prefix" then
-      key_prefix = vim.treesitter.get_node_text(node, bufnr)
+      key_prefix = vim.treesitter.get_node_text(node, source)
     end
   end
 
@@ -202,30 +199,30 @@ end
 
 --- t関数の呼び出しに関する情報を解析する
 --- @param target_node TSNode t関数呼び出しのノード
---- @param bufnr integer バッファ番号
+--- @param source (integer|string) バッファ番号 or ソース
 --- @param query vim.treesitter.Query クエリ
 --- @return CallTDetail|nil
-local function parse_call_t(target_node, bufnr, query)
+local function parse_call_t(target_node, source, query)
   local key = nil
   local key_node = nil
   local key_arg_node = nil
   local namespace = nil
   local key_prefix = nil
 
-  for id, node, _ in query:iter_captures(target_node, bufnr, 0, -1) do
+  for id, node, _ in query:iter_captures(target_node, source, 0, -1) do
     local name = query.captures[id]
 
     -- t関数の呼び出しがネストしている場合があるため、最初に見つかったものを採用する
     -- そのため key = ke or ... のような形にしている
     if name == "i18n.key" then
-      key = key or vim.treesitter.get_node_text(node, bufnr)
+      key = key or vim.treesitter.get_node_text(node, source)
       key_node = key_node or node
     elseif name == "i18n.key_arg" then
       key_arg_node = key_arg_node or node
     elseif name == "i18n.namespace" then
-      namespace = namespace or vim.treesitter.get_node_text(node, bufnr)
+      namespace = namespace or vim.treesitter.get_node_text(node, source)
     elseif name == "i18n.key_prefix" then
-      key_prefix = key_prefix or vim.treesitter.get_node_text(node, bufnr)
+      key_prefix = key_prefix or vim.treesitter.get_node_text(node, source)
     end
   end
 
@@ -242,83 +239,12 @@ local function parse_call_t(target_node, bufnr, query)
   }
 end
 
---- @type table<string, table<string, FindTExpressionResultItem[]>>
-local reference_table = {}
-local reference_preloaded = {}
-
-function M.preload(bufnr)
-  local workspace_dir = utils.get_workspace_root(bufnr)
-  if reference_preloaded[workspace_dir] then
-    return
-  end
-
-  M.load_all_call_t_expressions(workspace_dir)
-  reference_preloaded[workspace_dir] = true
-end
-
-function M.find_references_by_key(workspace_dir, key)
-  local result = {}
-  for path, t_calls in pairs(reference_table[workspace_dir] or {}) do
-    for _, t_call in ipairs(t_calls) do
-      if t_call.key == key then
-        table.insert(result, {
-          path = path,
-          t_call = t_call,
-        })
-      end
-    end
-  end
-  return result
-end
-
--- プラグインの起動時に、全てのファイルを走査して t 関数を取得する
-function M.load_all_call_t_expressions(workspace_dir)
-  vim.print("load_all_call_t_expressions", workspace_dir)
-  scan.scan_dir(workspace_dir, {
-    search_pattern = function(entry)
-      if entry:match("node_modules") then
-        return false
-      end
-      return entry:match("%.jsx?$") or entry:match("%.tsx?$")
-    end,
-    on_insert = function(path)
-      M.load_call_t_expressions(workspace_dir, path)
-    end,
-  })
-end
-
-function M.load_call_t_expressions(workspace_dir, path)
-  if path == nil or path == "" then
-    return
-  end
-
-  reference_table[workspace_dir] = reference_table[workspace_dir] or {}
-  local ref_table = reference_table[workspace_dir]
-
-  local bufnr = vim.api.nvim_create_buf(false, true)
-  local content = Path:new(path):read()
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))
-  vim.api.nvim_buf_set_option(
-    bufnr,
-    "filetype",
-    vim.filetype.match({ filename = path }) or "typescriptreact"
-  )
-
-  local t_calls = M.find_call_t_expressions_(bufnr)
-  ref_table[path] = t_calls
-
-  vim.api.nvim_buf_delete(bufnr, { force = true })
-end
-
 --- t関数を含むノードを検索する
 --- @param bufnr integer バッファ番号
---- @param path? string ファイルパス
 --- @return FindTExpressionResultItem[]
-function M.find_call_t_expressions(bufnr, path)
+function M.find_call_t_expressions(bufnr)
   local workspace_dir = utils.get_workspace_root(bufnr)
-  local path = path or vim.api.nvim_buf_get_name(bufnr)
-
-  return M.find_call_t_expressions_(bufnr)
+  return M.find_call_t_expressions_(bufnr, utils.detect_library(workspace_dir))
 end
 
 --- @class FindTExpressionResultItem
@@ -331,10 +257,21 @@ end
 --- @field namespace? string t 関数の namespace
 
 --- t関数を含むノードを検索する
---- @param bufnr integer バッファ番号
+--- @param source integer|string バッファ番号 or ソース
+--- @param lib? string ライブラリ
+--- @param lang? string 言語
 --- @return FindTExpressionResultItem[]
-function M.find_call_t_expressions_(bufnr)
-  local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
+function M.find_call_t_expressions_(source, lib, lang)
+  local ok, parser = pcall(function()
+    if type(source) == "string" then
+      if lang == nil then
+        return {}
+      end
+      return vim.treesitter.get_string_parser(source, lang)
+    else
+      return vim.treesitter.get_parser(source)
+    end
+  end)
   if not ok then
     return {}
   end
@@ -347,10 +284,8 @@ function M.find_call_t_expressions_(bufnr)
     return {}
   end
 
-  local workspace_dir = utils.get_workspace_root(bufnr)
-  local library = utils.detect_library(workspace_dir) or utils.Library.I18Next
   local query_str = ""
-  for _, query_file in ipairs(library_query[library][language] or library_query[library]["*"]) do
+  for _, query_file in ipairs(library_query[lib][language] or library_query[lib]["*"]) do
     local str = M.load_query_from_file(query_file)
     if str and type(str) == "string" and str ~= "" then
       query_str = query_str .. "\n" .. str
@@ -387,7 +322,7 @@ function M.find_call_t_expressions_(bufnr)
   --- @type FindTExpressionResultItem[]
   local result = {}
 
-  for id, node, _ in query:iter_captures(root_node, bufnr) do
+  for id, node, _ in query:iter_captures(root_node, source) do
     local name = query.captures[id]
 
     -- 現在のスコープから抜けたかどうかを判定する
@@ -397,7 +332,7 @@ function M.find_call_t_expressions_(bufnr)
     end
 
     if name == "i18n.get_t" then
-      local get_t_detail = parse_get_t(node, bufnr, query)
+      local get_t_detail = parse_get_t(node, source, query)
       if get_t_detail then
         -- 同一のスコープ内で get_t が呼ばれた場合はスコープを上書きする形になるように、一度 leave_scope してから enter_scope する
         if get_t_detail.scope_node == current_scope().scope_node then
@@ -407,7 +342,7 @@ function M.find_call_t_expressions_(bufnr)
       end
     elseif name == "i18n.call_t" then
       local scope = current_scope()
-      local call_t_detail = parse_call_t(node, bufnr, query)
+      local call_t_detail = parse_call_t(node, source, query)
 
       if call_t_detail == nil then
         goto continue
