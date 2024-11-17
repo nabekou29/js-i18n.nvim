@@ -278,7 +278,7 @@ function M.find_call_t_expressions_(source, lib, lang)
 
   local tree = parser:parse()[1]
   local root_node = tree:root()
-  local language = parser:lang()
+  local language = lang or parser:lang()
 
   if not vim.tbl_contains({ "javascript", "typescript", "jsx", "tsx" }, language) then
     return {}

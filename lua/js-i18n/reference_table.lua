@@ -51,10 +51,22 @@ function ReferenceTable:load_path(path)
 
   self._ref_processing[path] = true
   vim.schedule(function()
-    local lang = vim.filetype.match({ filename = path }) or "typescriptreact"
+    local ft = vim.filetype.match({ filename = path }) or "typescriptreact"
+    local lang = (function()
+      if ft == "typescript" then
+        return "typescript"
+      elseif ft == "typescriptreact" then
+        return "typescript"
+      elseif ft == "javascript" then
+        return "javascript"
+      elseif ft == "javascriptreact" then
+        return "javascript"
+      end
+      return "typescript"
+    end)()
     local content = Path:new(path):read()
 
-    local result = analyzer.find_call_t_expressions_(content, lang, lib)
+    local result = analyzer.find_call_t_expressions_(content, lib, lang)
     self._ref_table[path] = result
 
     self._ref_processing[path] = false
