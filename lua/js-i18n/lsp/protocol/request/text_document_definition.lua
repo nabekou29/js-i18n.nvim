@@ -26,7 +26,7 @@ local function handler(params, client)
   end
 
   local key = t_call.key
-  local library = utils.detect_library(bufnr)
+  local library = utils.detect_library(workspace_dir)
 
   for file, _ in pairs(t_source:get_translation_source_by_lang(lang)) do
     local bufnr = vim.api.nvim_create_buf(false, true)

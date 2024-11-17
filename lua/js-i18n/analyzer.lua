@@ -347,7 +347,8 @@ function M.find_call_t_expressions_(bufnr)
     return {}
   end
 
-  local library = utils.detect_library(bufnr) or utils.Library.I18Next
+  local workspace_dir = utils.get_workspace_root(bufnr)
+  local library = utils.detect_library(workspace_dir) or utils.Library.I18Next
   local query_str = ""
   for _, query_file in ipairs(library_query[library][language] or library_query[library]["*"]) do
     local str = M.load_query_from_file(query_file)

@@ -62,7 +62,8 @@ function M.set_extmark(bufnr, current_language, t_source)
     return
   end
 
-  local library = utils.detect_library(bufnr)
+  local workspace_dir = utils.get_workspace_root(bufnr)
+  local library = utils.detect_library(workspace_dir)
 
   M.clear_extmarks(bufnr)
 

@@ -10,7 +10,7 @@ function M.check(client, uri)
   local bufnr = vim.uri_to_bufnr(uri)
   local workspace_dir = utils.get_workspace_root(bufnr)
   local t_source = client.t_source_by_workspace[workspace_dir]
-  local library = utils.detect_library(bufnr)
+  local library = utils.detect_library(workspace_dir)
 
   local dispatchers = require("js-i18n.lsp.config").dispatchers
   if not dispatchers then
