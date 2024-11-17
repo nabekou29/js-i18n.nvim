@@ -14,6 +14,10 @@ local function handler(params, client)
 
   local workspace_dir = utils.get_workspace_root(bufnr)
   local t_source = client.t_source_by_workspace[workspace_dir]
+  if not t_source then
+    return "Translation source not found", nil
+  end
+
   local lang = utils.get_language(
     client.current_language,
     c.config.primary_language,
@@ -29,15 +33,13 @@ local function handler(params, client)
   local library = utils.detect_library(workspace_dir)
 
   for file, _ in pairs(t_source:get_translation_source_by_lang(lang)) do
-    local bufnr = vim.api.nvim_create_buf(false, true)
     local content = Path:new(file):read()
-    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(content, "\n"))
 
     --- @type lsp.Location[]
     local result = {}
 
     local keys = vim.split(key, c.config.key_separator, { plain = true })
-    local node = analyzer.get_node_for_key(bufnr, keys)
+    local node = analyzer.get_node_for_key(content, keys)
     if node ~= nil then
       local row_start, col_start, row_end, col_end = node:range()
       table.insert(result, {
@@ -54,7 +56,7 @@ local function handler(params, client)
         local key_with_suffix = { unpack(keys) }
         key_with_suffix[#key_with_suffix] = key_with_suffix[#key_with_suffix] .. suffix
 
-        local node = analyzer.get_node_for_key(bufnr, key_with_suffix)
+        local node = analyzer.get_node_for_key(content, key_with_suffix)
         if node ~= nil then
           local row_start, col_start, row_end, col_end = node:range()
           table.insert(result, {
@@ -68,7 +70,6 @@ local function handler(params, client)
       end
     end
 
-    vim.api.nvim_buf_delete(bufnr, { force = true })
     if #result > 0 then
       return nil, result
     end

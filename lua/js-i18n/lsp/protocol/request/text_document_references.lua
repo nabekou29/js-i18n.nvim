@@ -23,15 +23,9 @@ local function handler(params, client)
 
   local result = {}
   for _, ref in ipairs(refs) do
-    local path = ref.path
-    local t_call = ref.t_call
-    local row_start, col_start, row_end, col_end = t_call.node:range()
     table.insert(result, {
-      uri = vim.uri_from_fname(path),
-      range = {
-        start = { line = row_start, character = col_start },
-        ["end"] = { line = row_end, character = col_end },
-      },
+      uri = ref.uri,
+      range = ref.range,
     })
   end
 

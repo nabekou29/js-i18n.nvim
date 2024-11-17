@@ -71,13 +71,19 @@ local function calculate_node_depth(node)
 end
 
 --- Treesitterパーサーをセットアップしてキーにマッチするノードを取得する関数
---- @param bufnr number 文言ファイルのバッファ番号
+--- @param source integer|string バッファ番号 or ソース
 --- @param keys string[] キー
 --- @return TSNode | nil, string | nil
-function M.get_node_for_key(bufnr, keys)
+function M.get_node_for_key(source, keys)
   local ts = vim.treesitter
 
-  local parser = ts.get_parser(bufnr, "json")
+  local parser = (function()
+    if type(source) == "string" then
+      return ts.get_string_parser(source, "json")
+    else
+      return ts.get_parser(source)
+    end
+  end)()
   local tree = parser:parse()[1]
   local root = tree:root()
 
@@ -94,7 +100,7 @@ function M.get_node_for_key(bufnr, keys)
     local key_node_depth = 9999
     local value_node = nil
     local value_node_depth = 9999
-    for id, node, _ in query:iter_captures(json_node, bufnr) do
+    for id, node, _ in query:iter_captures(json_node, source) do
       local name = query.captures[id]
       local depth = calculate_node_depth(node)
       if name == "key" and depth < key_node_depth then
@@ -264,8 +270,9 @@ end
 function M.find_call_t_expressions(source, lib, lang)
   local ok, parser = pcall(function()
     if type(source) == "string" then
+      vim.validate({ lang = { lang, "string", true } })
       if lang == nil then
-        return {}
+        error("lang is required when source is string")
       end
       return vim.treesitter.get_string_parser(source, lang)
     else

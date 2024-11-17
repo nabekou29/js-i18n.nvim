@@ -18,7 +18,7 @@ local function handler(params, client)
       lsp_config.ref_table_by_workspace[workspace_dir] = ref_table
       ref_table:load_all()
     else
-      ref_table:load_path(vim.uri_to_fname(uri))
+      ref_table:load_path(vim.uri_to_fname(uri), params.contentChanges[1].text)
     end
 
     vim.schedule(function()
