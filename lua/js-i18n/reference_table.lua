@@ -49,9 +49,7 @@ function ReferenceTable:load_all()
 end
 
 function ReferenceTable:load_path(path, content)
-  self._ref_processing[path] = true
   if path == nil or path == "" then
-    self._ref_processing[path] = false
     return
   end
   local lib = utils.detect_library(self.config.workspace_dir)
@@ -68,11 +66,14 @@ function ReferenceTable:load_path(path, content)
       elseif ft == "javascriptreact" then
         return "javascript"
       end
-      vim.notify("Unknown filetype: " .. ft, vim.log.levels.ERROR)
       return nil
     end)()
+    if lang == nil then
+      return
+    end
     content = content or Path:new(path):read()
 
+    self._ref_processing[path] = true
     local result = analyzer.find_call_t_expressions(content, lib, lang)
     self._ref_table[path] = vim
       .iter(result)
