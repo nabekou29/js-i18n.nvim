@@ -5,10 +5,10 @@ local utils = require("js-i18n.utils")
 
 --- ハンドラ
 --- @param params lsp.ReferenceParams
---- @param client I18n.Client
+--- @param _client I18n.Client
 --- @return string | nil error
 --- @return lsp.Location[] | nil result
-local function handler(params, client)
+local function handler(params, _client)
   local bufnr = vim.uri_to_bufnr(params.textDocument.uri)
 
   local workspace_dir = utils.get_workspace_root(bufnr)

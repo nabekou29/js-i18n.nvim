@@ -292,6 +292,9 @@ function M.find_call_t_expressions(source, lib, lang)
   end
 
   local query_str = ""
+  if type(library_query[lib]) ~= "table" then
+    return {}
+  end
   for _, query_file in ipairs(library_query[lib][language] or library_query[lib]["*"]) do
     local str = M.load_query_from_file(query_file)
     if str and type(str) == "string" and str ~= "" then

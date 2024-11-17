@@ -35,12 +35,14 @@ function M.create_rpc(dispatchers, client)
       --- @type I18n.lsp.ProtocolModule
       local protocol_module = module
 
-      local err, result = protocol_module.handler(params, client)
-      if err then
-        callback(err, nil)
-      else
-        callback(nil, result)
-      end
+      vim.schedule(function()
+        local err, result = protocol_module.handler(params, client)
+        if err then
+          callback(err, nil)
+        else
+          callback(nil, result)
+        end
+      end)
       return true
     end,
     notify = function(method, params)
@@ -52,7 +54,10 @@ function M.create_rpc(dispatchers, client)
       end
       --- @type I18n.lsp.NotifyProtocolModule
       local protocol_module = module
-      protocol_module.handler(params, client)
+
+      vim.schedule(function()
+        protocol_module.handler(params, client)
+      end)
       return true
     end,
     is_closing = function()
