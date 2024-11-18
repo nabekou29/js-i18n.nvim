@@ -10,7 +10,7 @@ function M.check(client, uri)
   local bufnr = vim.uri_to_bufnr(uri)
   local workspace_dir = utils.get_workspace_root(bufnr)
   local t_source = client.t_source_by_workspace[workspace_dir]
-  local library = utils.detect_library(bufnr)
+  local library = utils.detect_library(workspace_dir)
 
   local dispatchers = require("js-i18n.lsp.config").dispatchers
   if not dispatchers then
@@ -28,7 +28,7 @@ function M.check(client, uri)
   --- @type lsp.Diagnostic[]
   local diagnostics = {}
 
-  local t_calls = analyzer.find_call_t_expressions(bufnr)
+  local t_calls = analyzer.find_call_t_expressions_from_buf(bufnr)
   for _, t_call in ipairs(t_calls) do
     local key = t_call.key
     local keys = vim.split(key, c.config.key_separator, { plain = true })

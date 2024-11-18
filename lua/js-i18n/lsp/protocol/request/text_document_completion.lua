@@ -39,8 +39,9 @@ end
 --- @return lsp.CompletionItem[]
 local function get_completion_items(client, bufnr, t_call)
   local lang = client:get_language(bufnr)
-  local t_source = client.t_source_by_workspace[utils.get_workspace_root(bufnr)]
-  local library = utils.detect_library(bufnr)
+  local workspace_dir = utils.get_workspace_root(bufnr)
+  local t_source = client.t_source_by_workspace[workspace_dir]
+  local library = utils.detect_library(workspace_dir)
 
   local key_prefix = t_call.key_prefix or ""
 

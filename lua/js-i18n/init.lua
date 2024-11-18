@@ -74,6 +74,7 @@ i18n.setup = function(opts)
           "typescriptreact",
           "javascript.jsx",
           "typescript.tsx",
+          "json",
         },
         single_file_support = true,
       },

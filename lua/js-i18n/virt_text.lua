@@ -62,11 +62,12 @@ function M.set_extmark(bufnr, current_language, t_source)
     return
   end
 
-  local library = utils.detect_library(bufnr)
+  local workspace_dir = utils.get_workspace_root(bufnr)
+  local library = utils.detect_library(workspace_dir)
 
   M.clear_extmarks(bufnr)
 
-  local t_calls = analyzer.find_call_t_expressions(bufnr)
+  local t_calls = analyzer.find_call_t_expressions_from_buf(bufnr)
 
   for _, t_call in ipairs(t_calls) do
     local key_node = t_call.key_node
