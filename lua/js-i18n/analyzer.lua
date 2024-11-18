@@ -92,7 +92,7 @@ function M.get_node_for_key(source, keys)
     local query = ts.query.parse("json", [[
       (pair
         key: (string) @key (#eq? @key "\"]] .. k .. [[\"")
-        value: [(object)(string)] @value
+        value: [(object)(array)(string)] @value
       )
     ]])
 
