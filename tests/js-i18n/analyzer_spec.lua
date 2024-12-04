@@ -196,6 +196,18 @@ describe("analyzer.find_call_t_expressions", function()
       })
     end)
 
+    test_analyze_file(get_project, "multiple_t_functions.jsx", function(_, utils)
+      -- see: tests/projects/i18next/test_analyzer/multiple_t_functions.jsx
+      utils.assert_items({
+        -- stylua: ignore start
+        { key = "t-prefix.key", key_prefix = "t-prefix", key_arg = "key" },
+        { key = "t2-prefix.key", key_prefix = "t2-prefix", key_arg = "key" },
+        { key = "t-prefix.key", key_prefix = "t-prefix", key_arg = "key" },
+        { key = "t2-prefix.key", key_prefix = "t2-prefix", key_arg = "key" },
+        -- stylua: ignore end
+      })
+    end)
+
     -- These should be found
     local tests = {
       { text = "t('key')" },
@@ -273,6 +285,20 @@ describe("analyzer.find_call_t_expressions", function()
         { key = "no-prefix-key-2",         key_prefix = "",          key_arg = "no-prefix-key-2" },
         { key = "prefix-2.prefix-2-key-1", key_prefix = "prefix-2",  key_arg = "prefix-2-key-1" },
         { key = "prefix-1.prefix-1-key-2", key_prefix = "prefix-1",  key_arg = "prefix-1-key-2" },
+        -- stylua: ignore end
+      })
+    end)
+
+    test_analyze_file(get_project, "multiple_t_functions.jsx", function(_, utils)
+      -- see: tests/projects/next-intl/test_analyzer/multiple_t_functions.jsx
+      utils.assert_items({
+        -- stylua: ignore start
+        { key = "t1-prefix.key", key_prefix = "t1-prefix", key_arg = "key" },
+        { key = "t2-prefix.key", key_prefix = "t2-prefix", key_arg = "key" },
+        { key = "t1-prefix.key", key_prefix = "t1-prefix", key_arg = "key" },
+        { key = "t2-prefix.key", key_prefix = "t2-prefix", key_arg = "key" },
+        { key = "t1-prefix.key", key_prefix = "t1-prefix", key_arg = "key" },
+        { key = "t2-prefix.key", key_prefix = "t2-prefix", key_arg = "key" },
         -- stylua: ignore end
       })
     end)

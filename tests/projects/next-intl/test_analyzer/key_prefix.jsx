@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 
 export const Component1 = () => {
-  const { t } = useTranslations();
+  const t = useTranslations();
 
   return (
     <div>
@@ -12,13 +12,13 @@ export const Component1 = () => {
 };
 
 export const Component2 = () => {
-  const { t } = useTranslations("prefix-1");
+  const t = useTranslations("prefix-1");
 
   const key = t("prefix-1-key-1");
   // This key prefix is "prefix-1". Because, it is provided in the most recent useTranslations.
 
   const InnerComponent1 = () => {
-    const { t } = useTranslations();
+    const t = useTranslations();
     return (
       <div>
         {t("no-prefix-key-2")}
@@ -28,7 +28,7 @@ export const Component2 = () => {
   };
 
   const InnerComponent2 = () => {
-    const { t } = useTranslations("prefix-2");
+    const t = useTranslations("prefix-2");
     return (
       <div>
         {t("prefix-2-key-1")}

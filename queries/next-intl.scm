@@ -1,12 +1,16 @@
 ;; useTranslations 関数呼び出し
-(call_expression
-  function: (identifier) @use_translations (#eq? @use_translations "useTranslations")
-  arguments: (arguments
-    [
-      (string (string_fragment) @i18n.key_prefix)
-      (undefined)
-    ]?
-  )
+(variable_declarator
+  name: (identifier) @i18n.t_func_name
+  value:
+    (call_expression
+      function: (identifier) @use_translations (#eq? @use_translations "useTranslations")
+      arguments: (arguments
+        [
+          (string (string_fragment) @i18n.key_prefix)
+          (undefined)
+        ]?
+      )
+    )
 ) @i18n.get_t
 
 ;; t 関数呼び出し
@@ -14,7 +18,7 @@
   function: [
     (identifier)
     (member_expression)
-  ] @t_func (#match? @t_func "^t(\.rich|\.markup|\.raw)?$")
+  ] @i18n.t_func_name
   arguments: (arguments
     (string
       (string_fragment) @i18n.key
