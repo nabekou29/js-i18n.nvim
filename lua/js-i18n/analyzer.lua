@@ -164,6 +164,7 @@ function M.get_key_at_cursor(bufnr, position)
 end
 
 --- @class GetTDetail
+--- @field t_func_name string
 --- @field namespace string
 --- @field key_prefix string
 --- @field scope_node TSNode|nil
@@ -174,13 +175,16 @@ end
 --- @param query vim.treesitter.Query クエリ
 --- @return GetTDetail|nil
 local function parse_get_t(target_node, source, query)
+  local t_func_name = nil
   local namespace = ""
   local key_prefix = ""
 
   for id, node, _ in query:iter_captures(target_node, source, 0, -1) do
     local name = query.captures[id]
 
-    if name == "i18n.namespace" then
+    if name == "i18n.t_func_name" then
+      t_func_name = t_func_name or vim.treesitter.get_node_text(node, source)
+    elseif name == "i18n.namespace" then
       namespace = vim.treesitter.get_node_text(node, source)
     elseif name == "i18n.key_prefix" then
       key_prefix = vim.treesitter.get_node_text(node, source)
@@ -190,6 +194,7 @@ local function parse_get_t(target_node, source, query)
   local scope_node = M.find_closest_node(target_node, { "statement_block", "jsx_element" })
 
   return {
+    t_func_name = t_func_name,
     namespace = namespace,
     key_prefix = key_prefix,
     scope_node = scope_node,
@@ -197,6 +202,7 @@ local function parse_get_t(target_node, source, query)
 end
 
 --- @class CallTDetail
+--- @field t_func_name string
 --- @field key string
 --- @field key_node TSNode
 --- @field key_arg_node TSNode
@@ -209,6 +215,7 @@ end
 --- @param query vim.treesitter.Query クエリ
 --- @return CallTDetail|nil
 local function parse_call_t(target_node, source, query)
+  local t_func_name = nil
   local key = nil
   local key_node = nil
   local key_arg_node = nil
@@ -220,7 +227,9 @@ local function parse_call_t(target_node, source, query)
 
     -- t関数の呼び出しがネストしている場合があるため、最初に見つかったものを採用する
     -- そのため key = ke or ... のような形にしている
-    if name == "i18n.key" then
+    if name == "i18n.t_func_name" then
+      t_func_name = t_func_name or vim.treesitter.get_node_text(node, source)
+    elseif name == "i18n.key" then
       key = key or vim.treesitter.get_node_text(node, source)
       key_node = key_node or node
     elseif name == "i18n.key_arg" then
@@ -237,6 +246,7 @@ local function parse_call_t(target_node, source, query)
   end
 
   return {
+    t_func_name = t_func_name,
     key = key,
     key_node = key_node,
     key_arg_node = key_arg_node,
@@ -308,25 +318,59 @@ function M.find_call_t_expressions(source, lib, lang)
 
   local query = vim.treesitter.query.parse(language, query_str)
 
-  --- @type GetTDetail[]
+  --- @type table<string, GetTDetail[]>
   local scope_stack = {}
 
   --- @param value GetTDetail
   local function enter_scope(value)
-    table.insert(scope_stack, value)
+    local t_func_name = value.t_func_name or "t"
+    scope_stack[t_func_name] = scope_stack[t_func_name] or {}
+    table.insert(scope_stack[t_func_name], value)
   end
 
-  local function leave_scope()
-    table.remove(scope_stack)
+  --- @param t_func_name string
+  local function leave_scope(t_func_name)
+    table.remove(scope_stack[t_func_name or "t"])
   end
 
-  local function current_scope()
-    return scope_stack[#scope_stack]
+  --- @param t_func_name string
+  local function current_scope(t_func_name)
+    local stack = scope_stack[t_func_name or "t"] or {}
+    return stack[#stack]
       or {
         namespace = "",
         key_prefix = "",
         scope_node = root_node,
       }
+  end
+
+  local function is_t_func(t_func_name)
+    if t_func_name == "t" or scope_stack[t_func_name] ~= nil then
+      return true
+    end
+
+    if lib == utils.Library.I18Next then
+      if t_func_name == "i18next.t" then
+        return true
+      end
+    elseif lib == utils.Library.NextIntl then
+      -- {t_func_name}.rich や {t_func_name}.markup などの形式も考慮する
+      local split = vim.split(t_func_name, ".", { plain = true })
+      local member = split[#split]
+      table.remove(split)
+      local name = vim.fn.join(split, ".")
+
+      local allow_members = {
+        ["rich"] = true,
+        ["markup"] = true,
+        ["raw"] = true,
+      }
+      if (name == "t" or scope_stack[name] ~= nil) and allow_members[member] then
+        return true
+      end
+    end
+
+    return false
   end
 
   --- @type FindTExpressionResultItem[]
@@ -336,27 +380,30 @@ function M.find_call_t_expressions(source, lib, lang)
     local name = query.captures[id]
 
     -- 現在のスコープから抜けたかどうかを判定する
-    local current_scope_node = current_scope().scope_node or root_node
-    if node:start() > current_scope_node:end_() or node:end_() < current_scope_node:start() then
-      leave_scope()
+    for t_func_name in pairs(scope_stack) do
+      local current_scope_node = current_scope(t_func_name).scope_node or root_node
+      if node:start() > current_scope_node:end_() or node:end_() < current_scope_node:start() then
+        leave_scope(t_func_name)
+      end
     end
 
     if name == "i18n.get_t" then
       local get_t_detail = parse_get_t(node, source, query)
       if get_t_detail then
         -- 同一のスコープ内で get_t が呼ばれた場合はスコープを上書きする形になるように、一度 leave_scope してから enter_scope する
-        if get_t_detail.scope_node == current_scope().scope_node then
-          leave_scope()
+        if get_t_detail.scope_node == current_scope(get_t_detail.t_func_name).scope_node then
+          leave_scope(get_t_detail.t_func_name)
         end
         enter_scope(get_t_detail)
       end
     elseif name == "i18n.call_t" then
-      local scope = current_scope()
       local call_t_detail = parse_call_t(node, source, query)
 
-      if call_t_detail == nil then
+      if call_t_detail == nil or not is_t_func(call_t_detail.t_func_name) then
         goto continue
       end
+
+      local scope = current_scope(call_t_detail.t_func_name)
 
       local key_prefix = call_t_detail.key_prefix or scope.key_prefix
       local key = call_t_detail.key
