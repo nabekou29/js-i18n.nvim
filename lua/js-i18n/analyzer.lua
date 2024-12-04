@@ -321,6 +321,16 @@ function M.find_call_t_expressions(source, lib, lang)
   --- @type table<string, GetTDetail[]>
   local scope_stack = {}
 
+  local function preprocess_t_func_name_for_scope(t_func_name)
+    if lib == utils.Library.I18Next then
+      return t_func_name
+    elseif lib == utils.Library.NextIntl then
+      return vim.split(t_func_name, ".", { plain = true })[1]
+    end
+
+    return t_func_name
+  end
+
   --- @param value GetTDetail
   local function enter_scope(value)
     local t_func_name = value.t_func_name or "t"
@@ -335,6 +345,7 @@ function M.find_call_t_expressions(source, lib, lang)
 
   --- @param t_func_name string
   local function current_scope(t_func_name)
+    local t_func_name = preprocess_t_func_name_for_scope(t_func_name)
     local stack = scope_stack[t_func_name or "t"] or {}
     return stack[#stack]
       or {
@@ -356,9 +367,8 @@ function M.find_call_t_expressions(source, lib, lang)
     elseif lib == utils.Library.NextIntl then
       -- {t_func_name}.rich や {t_func_name}.markup などの形式も考慮する
       local split = vim.split(t_func_name, ".", { plain = true })
-      local member = split[#split]
-      table.remove(split)
-      local name = vim.fn.join(split, ".")
+      local name = split[1]
+      local member = split[2]
 
       local allow_members = {
         ["rich"] = true,

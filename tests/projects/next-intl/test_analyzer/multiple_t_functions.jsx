@@ -24,4 +24,16 @@ export const Component2 = () => {
       </div>
     );
   };
-}
+};
+
+export const Component3 = () => {
+  const t1 = useTranslations('t1-prefix');
+  const t2 = useTranslations('t2-prefix');
+
+  return (
+    <div>
+      {t1.raw("key")}
+      {t2.raw("key")}
+    </div>
+  );
+};

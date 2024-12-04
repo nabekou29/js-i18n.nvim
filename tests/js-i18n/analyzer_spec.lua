@@ -297,6 +297,8 @@ describe("analyzer.find_call_t_expressions", function()
         { key = "t2-prefix.key", key_prefix = "t2-prefix", key_arg = "key" },
         { key = "t1-prefix.key", key_prefix = "t1-prefix", key_arg = "key" },
         { key = "t2-prefix.key", key_prefix = "t2-prefix", key_arg = "key" },
+        { key = "t1-prefix.key", key_prefix = "t1-prefix", key_arg = "key" },
+        { key = "t2-prefix.key", key_prefix = "t2-prefix", key_arg = "key" },
         -- stylua: ignore end
       })
     end)
