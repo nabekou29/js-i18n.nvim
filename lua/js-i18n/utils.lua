@@ -27,8 +27,9 @@ function M.detect_library(workspace_dir)
     return nil
   end
 
-  local package = vim.fn.json_decode(package_json)
-  if package == nil then
+  local ok, package = pcall(vim.fn.json_decode, package_json)
+
+  if not ok or package == nil then
     return nil
   end
 
