@@ -2,7 +2,7 @@ local async = require("plenary.async")
 
 local analyzer = require("js-i18n.analyzer")
 local c = require("js-i18n.config")
-local translation_source = require("js-i18n.translation-source")
+local translation_source = require("js-i18n.translation_source")
 local utils = require("js-i18n.utils")
 local virt_text = require("js-i18n.virt_text")
 
@@ -230,7 +230,8 @@ function Client:edit_translation(lang, key)
     local namespace = nil
 
     if c.config.namespace_separator ~= nil then
-      local split_first_key = vim.split(split_key[1], c.config.namespace_separator, { plain = true })
+      local split_first_key =
+        vim.split(split_key[1], c.config.namespace_separator, { plain = true })
       namespace = split_first_key[1]
       split_key[1] = split_first_key[2]
     end

@@ -1,6 +1,6 @@
 local lsp_config = require("js-i18n.lsp.config")
 local reference_table = require("js-i18n.reference_table")
-local translation_source = require("js-i18n.translation-source")
+local translation_source = require("js-i18n.translation_source")
 
 --- ハンドラ
 --- @param params lsp.DidChangeTextDocumentParams
