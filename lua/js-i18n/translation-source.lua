@@ -7,24 +7,38 @@ local c = require("js-i18n.config")
 
 local M = {}
 
+--- 文言ファイルかを判定するための正規表現を取得する
+--- @return vim.regex[]
+local function get_translation_source_regex()
+  local patterns = c.config.translation_source
+  return vim
+    .iter(patterns)
+    :map(function(pattern)
+      return vim.regex(vim.fn.glob2regpat(pattern))
+    end)
+    :totable()
+end
+
 --- 文言ファイルの一覧を取得する
 --- @param dir string ディレクトリ
 --- @return string[]
 function M.get_translation_files(dir)
   local result = {}
-  -- OPTIMIZE: pattern は on_insert の中で回すほうがいい
-  for _, pattern in ipairs(c.config.translation_source) do
-    local regexp = vim.regex(vim.fn.glob2regpat(pattern))
-    scan.scan_dir(dir, {
-      search_pattern = "%.json$",
-      on_insert = function(path)
+
+  local regexps = get_translation_source_regex()
+
+  scan.scan_dir(dir, {
+    search_pattern = "%.json$",
+    on_insert = function(path)
+      for _, regexp in ipairs(regexps) do
         local match_s = regexp:match_str(path)
         if match_s then
           table.insert(result, path)
+          break
         end
-      end,
-    })
-  end
+      end
+    end,
+  })
   return result
 end
 
@@ -36,8 +50,9 @@ function M.is_translation_file(filename)
     return false
   end
 
-  for _, pattern in ipairs(c.config.translation_source) do
-    if filename:match(pattern) then
+  for _, regexp in ipairs(get_translation_source_regex()) do
+    local match_s = regexp:match_str(filename)
+    if match_s then
       return true
     end
   end
