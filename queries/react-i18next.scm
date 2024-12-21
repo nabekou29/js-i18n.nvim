@@ -15,6 +15,7 @@
       arguments: (arguments
         [
           (string (string_fragment) @i18n.namespace)
+          (array)
           (undefined)
         ]?
         (object
