@@ -28,6 +28,23 @@ function M.get_translation_files(dir)
   return result
 end
 
+--- ファイルが文言ファイルかを判定する
+--- @param filename string ファイル名
+--- @return boolean
+function M.is_translation_file(filename)
+  if not filename:match("%.json$") then
+    return false
+  end
+
+  for _, pattern in ipairs(c.config.translation_source) do
+    if filename:match(pattern) then
+      return true
+    end
+  end
+
+  return false
+end
+
 --- 文言の更新
 --- @param file string ファイルパス
 --- @param key string[] キー
