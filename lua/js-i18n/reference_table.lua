@@ -42,6 +42,7 @@ function ReferenceTable:load_all()
       end
       return entry:match("%.jsx?$") or entry:match("%.tsx?$")
     end,
+    respect_gitignore = true,
     on_insert = function(path)
       self:load_path(path)
     end,
