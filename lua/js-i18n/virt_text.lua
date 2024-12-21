@@ -35,15 +35,16 @@ local function get_translation(lang, key, t_source, library)
   end
 
   for _, l in ipairs(langs) do
-    local split_key = vim.split(key, c.config.key_separator, { plain = true })
-
     local namespace = nil
     if c.config.namespace_separator ~= nil then
-      local split_first_key = vim.split(split_key[1], c.config.namespace_separator, { plain = true })
-      namespace = split_first_key[1]
-      split_key[1] = split_first_key[2]
+      local split_first_key = vim.split(key, c.config.namespace_separator, { plain = true })
+      if #split_first_key >= 2 then
+        namespace = split_first_key[1]
+        key = split_first_key[2]
+      end
     end
 
+    local split_key = vim.split(key, c.config.key_separator, { plain = true })
     local text = t_source:get_translation(l, split_key, library, namespace)
     if text ~= nil and type(text) == "string" then
       return text, l

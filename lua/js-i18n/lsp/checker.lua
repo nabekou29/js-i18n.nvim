@@ -31,15 +31,17 @@ function M.check(client, uri)
   local t_calls = analyzer.find_call_t_expressions_from_buf(bufnr)
   for _, t_call in ipairs(t_calls) do
     local key = t_call.key
-    local keys = vim.split(key, c.config.key_separator, { plain = true })
 
     local namespace = nil
-
     if c.config.namespace_separator ~= nil then
-      local split_first_key = vim.split(keys[1], c.config.namespace_separator, { plain = true })
-      namespace = split_first_key[1]
-      keys[1] = split_first_key[2]
+      local split_first_key = vim.split(key, c.config.namespace_separator, { plain = true })
+      if #split_first_key >= 2 then
+        namespace = split_first_key[1]
+        key = split_first_key[2]
+      end
     end
+
+    local keys = vim.split(key, c.config.key_separator, { plain = true })
 
     local missing_languages = {}
     local available_languages = t_source:get_available_languages()

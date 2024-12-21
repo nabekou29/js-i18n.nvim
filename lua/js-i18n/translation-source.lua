@@ -220,7 +220,7 @@ end
 --- @return string|nil file 文言リソース
 function TranslationSource:get_translation(lang, key, library, namespace)
   for file, json in pairs(self:get_translation_source_by_lang(lang)) do
-    if namespace == nil or string.find(file, namespace .. ".json") then
+    if namespace == nil or vim.endswith(file, namespace .. ".json") then
       local text = vim.tbl_get(json, unpack(key))
       if text then
         return text, file

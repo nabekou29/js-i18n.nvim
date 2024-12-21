@@ -121,6 +121,7 @@ function ReferenceTable:is_processing(path)
 end
 
 --- キーから参照を検索する
+--- TODO: namespace に対応する
 --- @param key string キー
 --- @return I18n.Ref[]
 function ReferenceTable:find_by_key(key)

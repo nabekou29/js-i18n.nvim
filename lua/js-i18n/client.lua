@@ -218,6 +218,16 @@ function Client:edit_translation(lang, key)
       vim.notify("Key not found", vim.log.levels.ERROR)
       return
     end
+
+    local namespace = nil
+    if c.config.namespace_separator ~= nil then
+      local split_first_key = vim.split(key, c.config.namespace_separator, { plain = true })
+      if #split_first_key >= 2 then
+        namespace = split_first_key[1]
+        key = split_first_key[2]
+      end
+    end
+
     local split_key = vim.split(key, c.config.key_separator, { plain = true })
 
     local workspace_dir = utils.get_workspace_root(bufnr)
@@ -225,14 +235,6 @@ function Client:edit_translation(lang, key)
     if ws_t_source == nil then
       vim.notify("Translation source not found", vim.log.levels.ERROR)
       return
-    end
-
-    local namespace = nil
-
-    if c.config.namespace_separator ~= nil then
-      local split_first_key = vim.split(split_key[1], c.config.namespace_separator, { plain = true })
-      namespace = split_first_key[1]
-      split_key[1] = split_first_key[2]
     end
 
     -- キーに一致する文言があれば編集、なければ追加
@@ -244,11 +246,9 @@ function Client:edit_translation(lang, key)
 
       local files = {}
 
-      local i = 1
-      for _, file in pairs(all_files) do
+      for i, file in pairs(all_files) do
         if namespace == nil or string.find(file, namespace .. ".json") then
           files[i] = file
-          i = i + 1
         end
       end
 
