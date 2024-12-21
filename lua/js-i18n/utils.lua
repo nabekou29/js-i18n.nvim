@@ -10,7 +10,14 @@ M.Library = {
 --- @param bufnr number
 --- @return string プロジェクトのルートディレクトリ
 function M.get_workspace_root(bufnr)
-  local root = vim.fs.root(bufnr, "package.json")
+  -- $HOME になった場合は除外する
+  local excludes = { vim.env.HOME }
+  local root = vim.fs.root(bufnr, { "package.json", ".git" })
+
+  if root and vim.tbl_contains(excludes, root) then
+    root = nil
+  end
+
   if root == nil then
     return vim.fn.getcwd()
   else
