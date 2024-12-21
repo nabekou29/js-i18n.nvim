@@ -1,5 +1,6 @@
 local lsp_config = require("js-i18n.lsp.config")
 local reference_table = require("js-i18n.reference_table")
+local translation_source = require("js-i18n.translation_source")
 
 --- ハンドラ
 --- @param params lsp.DidChangeTextDocumentParams
@@ -10,6 +11,13 @@ local function handler(params, client)
 
     local bufnr = vim.uri_to_bufnr(uri)
     local workspace_dir = require("js-i18n.utils").get_workspace_root(bufnr)
+
+    -- 文言ファイル以外の JSON ファイルは無視する
+    local file_name = vim.uri_to_fname(uri)
+    if file_name:match("%.json$") and not translation_source.is_translation_file(file_name) then
+      return
+    end
+
     local ref_table = lsp_config.ref_table_by_workspace[workspace_dir]
     if lsp_config.ref_table_by_workspace[workspace_dir] == nil then
       local ref_table = reference_table.ReferenceTable.new({
