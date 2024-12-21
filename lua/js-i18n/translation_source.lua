@@ -28,7 +28,13 @@ function M.get_translation_files(dir)
   local regexps = get_translation_source_regex()
 
   scan.scan_dir(dir, {
-    search_pattern = "%.json$",
+    search_pattern = function(entry)
+      if entry:match("node_modules") then
+        return false
+      end
+      return entry:match("%.json$")
+    end,
+    respect_gitignore = true,
     on_insert = function(path)
       for _, regexp in ipairs(regexps) do
         local match_s = regexp:match_str(path)
@@ -39,6 +45,7 @@ function M.get_translation_files(dir)
       end
     end,
   })
+
   return result
 end
 
