@@ -97,6 +97,7 @@ The default settings are as follows. For omitted parts, refer to [config.lua](./
 {
   primary_language = {}, -- The default language to display (initial setting for displaying virtual text, etc.)
   translation_source = { "**/{locales,messages}/*.json" }, -- Pattern for translation resources
+  respect_gitignore = true, -- Whether to respect .gitignore when retrieving translation resources and implementation files. Setting to false may improve performance.
   detect_language = ..., -- Function to detect the language. By default, a function that detects the language heuristically from the file name is used.
   key_separator = ".", -- Key separator
   virt_text = {
@@ -118,3 +119,4 @@ The default settings are as follows. For omitted parts, refer to [config.lua](./
 
 - Enhanced support for libraries
   - Namespace support
+- Extract the Language Server implementation into a separate project

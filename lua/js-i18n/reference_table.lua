@@ -2,6 +2,7 @@ local Path = require("plenary.path")
 local scan = require("plenary.scandir")
 
 local analyzer = require("js-i18n.analyzer")
+local c = require("js-i18n.config")
 local utils = require("js-i18n.utils")
 
 local M = {}
@@ -42,7 +43,7 @@ function ReferenceTable:load_all()
       end
       return entry:match("%.jsx?$") or entry:match("%.tsx?$")
     end,
-    respect_gitignore = true,
+    respect_gitignore = c.config.respect_gitignore,
     on_insert = function(path)
       self:load_path(path)
     end,

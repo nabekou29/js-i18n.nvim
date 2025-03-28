@@ -34,7 +34,7 @@ function M.get_translation_files(dir)
       end
       return entry:match("%.json$")
     end,
-    respect_gitignore = true,
+    respect_gitignore = c.config.respect_gitignore,
     on_insert = function(path)
       for _, regexp in ipairs(regexps) do
         local match_s = regexp:match_str(path)
