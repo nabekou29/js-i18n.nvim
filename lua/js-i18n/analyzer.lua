@@ -133,11 +133,13 @@ end
 --- @return string[] | nil value カーソルの位置の key
 function M.get_key_at_cursor(bufnr, position)
   local ts = vim.treesitter
+  ts.get_parser(bufnr):parse()
 
   -- カーソルの位置のノードを取得
   local row = position.line
   local col = position.character
   local cursor_node = ts.get_node({ bufnr = bufnr, pos = { row, col } })
+
   if cursor_node == nil then
     return nil
   end
