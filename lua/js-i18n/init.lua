@@ -34,7 +34,7 @@ i18n.client = nil
 i18n.setup = function(opts)
   local hl = vim.api.nvim_set_hl
 
-  hl(0, '@i18n.translation', { link = 'Comment' })
+  hl(0, "@i18n.translation", { link = "Comment" })
 
   local group = vim.api.nvim_create_augroup("js-i18n", {})
   -- 設定の初期化

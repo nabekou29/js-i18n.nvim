@@ -54,6 +54,7 @@ end
 --- @class I18n.Config
 --- @field primary_language string[] 優先表示する言語
 --- @field translation_source string[] 翻訳ソースのパターン
+--- @field respect_gitignore boolean .gitignore を尊重するかどうか
 --- @field detect_language fun(path: string): string ファイルパスから言語を検出する関数
 --- @field namespace_separator string?
 --- @field key_separator string キーのセパレータ
@@ -81,6 +82,7 @@ local default_config = {
   detect_language = M.default_detect_language,
   namespace_separator = nil,
   key_separator = ".",
+  respect_gitignore = true,
   virt_text = {
     enabled = true,
     format = default_virt_text_format,

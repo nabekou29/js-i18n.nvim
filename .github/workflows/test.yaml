@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: leafo/gh-actions-lua@v11
+      - uses: leafo/gh-actions-luarocks@v5
+
       - name: get year month
         id: get_date
         run: echo "year_month=$(date +'%Y%m')" >> $GITHUB_OUTPUT
