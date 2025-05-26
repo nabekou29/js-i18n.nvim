@@ -264,12 +264,20 @@ function TranslationSource:get_translation(lang, key, library, namespace)
       if text then
         return text, file
       end
+      text = json[table.concat(key, ".")]
+      if text then
+        return text, file
+      end
 
       if library == utils.Library.I18Next then
         for _, suffix in ipairs(c.config.libraries.i18next.plural_suffixes) do
           local key_with_suffix = { unpack(key) }
           key_with_suffix[#key_with_suffix] = key_with_suffix[#key_with_suffix] .. suffix
           text = vim.tbl_get(json, unpack(key_with_suffix))
+          if text then
+            return text, file
+          end
+          text = json[table.concat(key_with_suffix, ".")]
           if text then
             return text, file
           end
