@@ -83,6 +83,15 @@ function M.update_translation(file, key, text)
   -- text に ' が含まれている場合はエスケープする
   text = text:gsub("'", "'\"'\"'")
 
+  local content = vim.fn.readfile(file)
+  local ok, json = pcall(vim.fn.json_decode, content)
+  if ok and type(json) == "table" then
+    local flat_key = table.concat(key, ".")
+    if json[flat_key] ~= nil then
+      key_str = string.format('["%s"]', flat_key)
+    end
+  end
+
   local cmd = string.format(
     "jq '.%s = \"%s\"' %s > %s.tmp && mv %s.tmp %s",
     key_str,
