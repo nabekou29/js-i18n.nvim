@@ -89,6 +89,8 @@ js-i18n.nvim is a Neovim plugin that supports JavaScript i18n libraries.
 
 - `:I18nDiagnosticToggle` - Toggles the display of diagnostic information.
 
+- `:I18nCopyKey` - When executed in a JSON file, copies the key at the cursor position to the clipboard.
+
 ## ⚙️ Configuration
 
 The default settings are as follows. For omitted parts, refer to [config.lua](./lua/js-i18n/config.lua).
@@ -114,6 +116,18 @@ The default settings are as follows. For omitted parts, refer to [config.lua](./
   },
 }
 ```
+
+### Handling Flattened JSON
+
+When using flattened JSON (e.g., `{ "some.deeply.nested.key": "value" }`), you can handle it by setting `key_separator` to a character that is not normally used.
+
+```lua
+{
+  key_separator = "?", -- or "__no_separate__", or any character not included in your keys
+}
+```
+
+This will treat dot-separated keys as a single key instead of nested keys.
 
 ## ⬆️ Roadmap
 
