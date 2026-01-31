@@ -71,6 +71,8 @@ js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18
 
 - `:I18nVirtualTextToggle` - バーチャルテキストの表示を切り替えます。
 
+- `:I18nCopyKey` - カーソル位置の翻訳キーをクリップボードにコピーします。
+
 - `:I18nDeleteUnusedKeys` - 現在の JSON ファイルから未使用の翻訳キーを削除します。
 
 ## ⚙️ 設定
