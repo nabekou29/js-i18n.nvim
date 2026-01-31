@@ -6,9 +6,6 @@ load(vim.fn.system("curl -s https://raw.githubusercontent.com/folke/lazy.nvim/ma
 -- Setup lazy.nvim
 require("lazy.minit").busted({
   spec = {
-    "nvim-lua/plenary.nvim",
-    "neovim/nvim-lspconfig",
-    { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate json javascript typescript tsx" },
-    { dir = vim.uv.cwd(), opts = {} },
+    { dir = vim.uv.cwd() },
   },
 })
