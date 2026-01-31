@@ -73,6 +73,8 @@ js-i18n.nvim is a Neovim plugin powered by [js-i18n-language-server](https://git
 
 - `:I18nVirtualTextToggle` - Toggles the display of virtual text.
 
+- `:I18nCopyKey` - Copies the translation key at the cursor position to the clipboard.
+
 - `:I18nDeleteUnusedKeys` - Deletes unused translation keys from the current JSON file.
 
 ## ⚙️ Configuration

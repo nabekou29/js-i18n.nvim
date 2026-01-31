@@ -126,6 +126,28 @@ M.setup = function(opts)
     end
   end, {})
 
+  vim.api.nvim_create_user_command("I18nCopyKey", function()
+    local uri = vim.uri_from_bufnr(0)
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    local position = { line = cursor[1] - 1, character = cursor[2] }
+    execute_command("i18n.getKeyAtPosition", { { uri = uri, position = position } }, function(err, result)
+      if err then
+        vim.schedule(function()
+          vim.notify("[js-i18n] Failed to get key: " .. tostring(err), vim.log.levels.ERROR)
+        end)
+        return
+      end
+      vim.schedule(function()
+        if result and result.key then
+          vim.fn.setreg("+", result.key)
+          vim.notify("[js-i18n] Copied: " .. result.key, vim.log.levels.INFO)
+        else
+          vim.notify("[js-i18n] No translation key found at cursor.", vim.log.levels.WARN)
+        end
+      end)
+    end)
+  end, {})
+
   vim.api.nvim_create_user_command("I18nDeleteUnusedKeys", function()
     local uri = vim.uri_from_bufnr(0)
     execute_command("i18n.deleteUnusedKeys", { { uri = uri } }, function(err, result)
