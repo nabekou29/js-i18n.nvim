@@ -1,33 +1,92 @@
 local config = require("js-i18n.config")
 
 describe("js-i18n.config", function()
-  describe("default_detect_language", function()
-    local tests = {
-      { path = "/path/to/locals/en/trans.json", expected = "en" },
-      { path = "/path/to/locals/ja/trans.json", expected = "ja" },
-      { path = "/path/to/locals/hoge/trans.json", expected = "unknown" },
+  describe("setup", function()
+    it("should set default config when no options are given", function()
+      config.setup({})
+      assert.are.equal(true, config.config.virt_text.enabled)
+      assert.are.equal(false, config.config.virt_text.conceal_key)
+      assert.are.equal(0, config.config.virt_text.max_width)
+      assert.are.equal(true, config.config.diagnostic.enabled)
+      assert.are.equal("js-i18n-language-server", config.config.server.cmd[1])
+    end)
 
-      -- Test cases to verify that it is sufficient for the languagee name to be included somewhere.
-      { path = "/path/to/locals/sub/en.json", expected = "en" },
-      { path = "/path/to/en/locals/trans.json", expected = "en" },
-      { path = "/path/to/locals/en-trans.json", expected = "unknown" },
+    it("should merge user options with defaults", function()
+      config.setup({
+        virt_text = { max_width = 50 },
+        server = { key_separator = "-" },
+      })
+      assert.are.equal(50, config.config.virt_text.max_width)
+      assert.are.equal(true, config.config.virt_text.enabled)
+      assert.are.equal("-", config.config.server.key_separator)
+    end)
+  end)
 
-      -- Test cases for language names with any case and separating characters.
-      { path = "/path/to/locals/en-us/trans.json", expected = "en-us" },
-      { path = "/path/to/locals/en_us/trans.json", expected = "en_us" },
-      { path = "/path/to/locals/en-US/trans.json", expected = "en-US" },
+  describe("migrate_config", function()
+    it("should migrate primary_language to server.primary_languages", function()
+      local opts = config.migrate_config({ primary_language = { "ja", "en" } })
+      assert.is_nil(opts.primary_language)
+      assert.are.same({ "ja", "en" }, opts.server.primary_languages)
+    end)
 
-      -- Test cases where the last match is returned when multiple locale names are included.
-      { path = "/path/to/locals/en/ja.json", expected = "ja" },
-    }
+    it("should migrate translation_source to server.translation_files", function()
+      local opts = config.migrate_config({ translation_source = { "**/locales/*.json" } })
+      assert.is_nil(opts.translation_source)
+      assert.are.equal("**/locales/*.json", opts.server.translation_files.file_pattern)
+    end)
 
-    for _, test in ipairs(tests) do
-      it(
-        string.format("should return %q when detecting language from %q", test.expected, test.path),
-        function()
-          assert.are.equal(test.expected, config.default_detect_language(test.path))
-        end
-      )
-    end
+    it("should migrate key_separator to server.key_separator", function()
+      local opts = config.migrate_config({ key_separator = "-" })
+      assert.is_nil(opts.key_separator)
+      assert.are.equal("-", opts.server.key_separator)
+    end)
+
+    it("should migrate namespace_separator to server.namespace_separator", function()
+      local opts = config.migrate_config({ namespace_separator = ":" })
+      assert.is_nil(opts.namespace_separator)
+      assert.are.equal(":", opts.server.namespace_separator)
+    end)
+
+    it("should remove deprecated keys", function()
+      local opts = config.migrate_config({
+        detect_language = function() end,
+        libraries = {},
+        respect_gitignore = true,
+      })
+      assert.is_nil(opts.detect_language)
+      assert.is_nil(opts.libraries)
+      assert.is_nil(opts.respect_gitignore)
+    end)
+  end)
+
+  describe("build_server_settings", function()
+    it("should convert snake_case to camelCase", function()
+      local settings = config.build_server_settings({
+        cmd = { "js-i18n-language-server", "--stdio" },
+        key_separator = "-",
+        namespace_separator = ":",
+        primary_languages = { "ja" },
+        translation_files = { file_pattern = "**/locales/*.json" },
+        virtual_text = { max_length = 50 },
+        diagnostics = { unused_keys = true },
+        indexing = { num_threads = 4 },
+      })
+      assert.are.equal("-", settings.keySeparator)
+      assert.are.equal(":", settings.namespaceSeparator)
+      assert.are.same({ "ja" }, settings.primaryLanguages)
+      assert.are.equal("**/locales/*.json", settings.translationFiles.filePattern)
+      assert.are.equal(50, settings.virtualText.maxLength)
+      assert.are.equal(true, settings.diagnostics.unusedKeys)
+      assert.are.equal(4, settings.indexing.numThreads)
+    end)
+
+    it("should omit nil fields", function()
+      local settings = config.build_server_settings({
+        cmd = { "js-i18n-language-server", "--stdio" },
+      })
+      assert.is_nil(settings.keySeparator)
+      assert.is_nil(settings.translationFiles)
+      assert.is_nil(settings.primaryLanguages)
+    end)
   end)
 end)

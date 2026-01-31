@@ -4,35 +4,27 @@
 
 <br />
 
-_⚠︎ This file is translated and updated by ChatGPT based on the original text._
-
-<br />
-
 # 🌐 js-i18n.nvim
 
 [![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
 [![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
 
-js-i18n.nvim is a Neovim plugin that supports JavaScript i18n libraries.
+js-i18n.nvim is a Neovim plugin powered by [js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server) that supports JavaScript/TypeScript i18n libraries.
 
 <div>
   <video src="https://github.com/user-attachments/assets/abcd728d-42d1-46d2-8d18-072102b1cf71" type="video/mp4" />
 </div>
-
-## 🚧 Status
-
-> [!WARNING]
-> This plugin is still under development and is optimized for the developer's use cases.
 
 ## ✨ Features
 
 - Display translations as virtual text
 - Edit translations (via command or code action)
 - Show error when a translation for the key is not found
+- Detect unused translation keys
 - Jump to definition of translation resources
 - Display translations for each language on hover
 - Key completion
-- Support for monorepos
+- Find references
 - Support for multiple libraries (i18next, react-i18next, next-intl)
 
 ### Supported Libraries
@@ -47,9 +39,12 @@ js-i18n.nvim is a Neovim plugin that supports JavaScript i18n libraries.
 
 ## ✅ Requirements
 
-- Neovim 0.10.0 or higher (not tested with versions below 0.10.0)
-- [jq](https://stedolan.github.io/jq/)
-  Used for editing translation texts.
+- Neovim >= 0.11
+- [js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server)
+
+  ```sh
+  npm install -g js-i18n-language-server
+  ```
 
 ## 📦 Installation
 
@@ -58,13 +53,8 @@ js-i18n.nvim is a Neovim plugin that supports JavaScript i18n libraries.
 ```lua
 {
   "nabekou29/js-i18n.nvim",
-  dependencies = {
-    "neovim/nvim-lspconfig",
-    "nvim-treesitter/nvim-treesitter",
-    "nvim-lua/plenary.nvim",
-  },
   event = { "BufReadPre", "BufNewFile" },
-  opts = {}
+  opts = {},
 }
 ```
 
@@ -74,7 +64,7 @@ js-i18n.nvim is a Neovim plugin that supports JavaScript i18n libraries.
 
 - `:I18nSetLang [lang]` - Sets the language. The set language is used for virtual text display and definition jumps.
 
-- `:I18nEditTranslation [lang]` - Edits the translation at the cursor position. If there is no matching translation for the key, a new translation is added.  
+- `:I18nEditTranslation [lang]` - Edits the translation at the cursor position. If there is no matching translation for the key, a new translation is added.
   If `lang` is omitted, the currently displayed language is used.
 
 - `:I18nVirtualTextEnable` - Enables the display of virtual text.
@@ -89,33 +79,44 @@ js-i18n.nvim is a Neovim plugin that supports JavaScript i18n libraries.
 
 - `:I18nDiagnosticToggle` - Toggles the display of diagnostic information.
 
-- `:I18nCopyKey` - When executed in a JSON file, copies the key at the cursor position to the clipboard.
+- `:I18nDeleteUnusedKeys` - Deletes unused translation keys from the current JSON file.
 
 ## ⚙️ Configuration
 
-The default settings are as follows. For omitted parts, refer to [config.lua](./lua/js-i18n/config.lua).
+The default settings are as follows. For the complete list, refer to [config.lua](./lua/js-i18n/config.lua).
 
 ```lua
 {
-  primary_language = {}, -- The default language to display (initial setting for displaying virtual text, etc.)
-  translation_source = { "**/{locales,messages}/*.json" }, -- Pattern for translation resources
-  respect_gitignore = true, -- Whether to respect .gitignore when retrieving translation resources and implementation files. Setting to false may improve performance.
-  detect_language = ..., -- Function to detect the language. By default, a function that detects the language heuristically from the file name is used.
-  key_separator = ".", -- Key separator
+  -- Client-side (Neovim-specific) settings
   virt_text = {
-    enabled = true, -- Enable virtual text display
-    format = ..., -- Format function for virtual text
-    conceal_key = false, -- Hide keys and display only translations
-    fallback = false, -- Fallback if the selected virtual text cannot be displayed
-    max_length = 0, -- Maximum length of virtual text. 0 means unlimited.
-    max_width = 0, -- Maximum width of virtual text. 0 means unlimited. (`max_length` takes precedence.)
+    enabled = true,        -- Enable virtual text display
+    format = ...,          -- Format function for virtual text
+    conceal_key = false,   -- Hide keys and display only translations
+    max_width = 0,         -- Maximum display width of virtual text. 0 means unlimited.
   },
   diagnostic = {
-    enabled = true, -- Enable the display of diagnostic information
-    severity = vim.diagnostic.severity.WARN, -- Severity level of diagnostic information
+    enabled = true,        -- Enable the display of diagnostic information
+    severity = vim.diagnostic.severity.WARN,  -- Severity level of diagnostic information
+  },
+
+  -- Server settings
+  -- Can also be configured via .js-i18n.json file (which takes priority)
+  server = {
+    cmd = { "js-i18n-language-server", "--stdio" },  -- Server command
+    translation_files = { file_pattern = "**/{locales,messages}/**/*.json" },
+    key_separator = ".",
+    namespace_separator = nil,
+    default_namespace = nil,
+    primary_languages = nil,
+    required_languages = nil,
+    optional_languages = nil,
+    virtual_text = { max_length = 30 },
+    diagnostics = { unused_keys = true },
   },
 }
 ```
+
+For server-side configuration details, see the [js-i18n-language-server configuration docs](https://github.com/nabekou29/js-i18n-language-server/blob/main/docs/configuration.md).
 
 ### Handling Flattened JSON
 
@@ -123,14 +124,41 @@ When using flattened JSON (e.g., `{ "some.deeply.nested.key": "value" }`), you c
 
 ```lua
 {
-  key_separator = "?", -- or "__no_separate__", or any character not included in your keys
+  server = {
+    key_separator = "?",  -- or "__no_separate__", or any character not included in your keys
+  },
 }
 ```
 
 This will treat dot-separated keys as a single key instead of nested keys.
 
-## ⬆️ Roadmap
+## ⬆️ Migration from v0.x
 
-- Enhanced support for libraries
-  - Namespace support
-- Extract the Language Server implementation into a separate project
+v1.0 has been rewritten to use the external [js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server).
+
+### Key Changes
+
+- **Dependencies**: `nvim-lspconfig`, `nvim-treesitter`, `plenary.nvim`, and `jq` are no longer required
+- **Requirements**: `js-i18n-language-server` must be installed
+- **Neovim version**: 0.11 or higher is required
+- **Configuration**: Server-related settings have moved into the `server` table
+
+Deprecated config keys are automatically converted and a warning is displayed.
+
+```lua
+-- v0.x
+{
+  primary_language = { "ja" },
+  translation_source = { "**/locales/*.json" },
+  key_separator = ".",
+}
+
+-- v1.0
+{
+  server = {
+    primary_languages = { "ja" },
+    translation_files = { file_pattern = "**/locales/*.json" },
+    key_separator = ".",
+  },
+}
+```

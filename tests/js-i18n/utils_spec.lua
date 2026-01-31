@@ -1,34 +1,6 @@
 local utils = require("js-i18n.utils")
 
 describe("js-i18n.utils", function()
-  describe("utf_truncate", function()
-    -- stylua: ignore start
-    local tests = {
-      { str = "abcde",     max = 5, ellipsis = "",    expected = "abcde" },
-      { str = "abcde",     max = 5, ellipsis = "…",   expected = "abcde" },
-      { str = "abcdef",    max = 5, ellipsis = "…",   expected = "abcd…" },
-      { str = "abcdef",    max = 5, ellipsis = "...", expected = "ab..." },
-      { str = "abcあいう", max = 5, ellipsis = "…",   expected = "abcあ…" },
-      { str = "abcあいう", max = 6, ellipsis = "…",   expected = "abcあいう" },
-    }
-    -- stylua: ignore end
-
-    for _, test in ipairs(tests) do
-      it(
-        string.format(
-          "should return %q when truncating %q to %d characters (ellipsis: %q)",
-          test.expected,
-          test.str,
-          test.max,
-          test.ellipsis
-        ),
-        function()
-          assert.are.equal(test.expected, utils.utf_truncate(test.str, test.max, test.ellipsis))
-        end
-      )
-    end
-  end)
-
   describe("truncate_display_width", function()
     -- stylua: ignore start
     local tests = {
@@ -61,5 +33,23 @@ describe("js-i18n.utils", function()
         end
       )
     end
+  end)
+
+  describe("escape_translation_text", function()
+    it("should escape newlines", function()
+      assert.are.equal("hello\\nworld", utils.escape_translation_text("hello\nworld"))
+    end)
+
+    it("should escape tabs", function()
+      assert.are.equal("hello\\tworld", utils.escape_translation_text("hello\tworld"))
+    end)
+
+    it("should escape carriage returns", function()
+      assert.are.equal("hello\\rworld", utils.escape_translation_text("hello\rworld"))
+    end)
+
+    it("should escape double quotes", function()
+      assert.are.equal('hello\\"world', utils.escape_translation_text('hello"world'))
+    end)
   end)
 end)
