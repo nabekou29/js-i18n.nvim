@@ -56,7 +56,7 @@ M.setup = function(opts)
       "json",
     },
     root_markers = { "package.json", ".git" },
-    -- settings = c.build_server_settings(c.config.server),
+    settings = c.build_server_settings(c.config.server),
     -- handlers = {
     --   ["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
     --     if not c.config.diagnostic.enabled then
@@ -75,12 +75,16 @@ M.setup = function(opts)
   -- Virtual text autocmds
   local group = vim.api.nvim_create_augroup("js-i18n", { clear = true })
 
-  vim.api.nvim_create_autocmd("LspAttach", {
+  vim.api.nvim_create_autocmd("LspProgress", {
     group = group,
     callback = function(ev)
       local client = vim.lsp.get_client_by_id(ev.data.client_id)
-      if client and client.name == "js_i18n" then
-        virt_text.request_decorations(ev.buf)
+      if not client or client.name ~= "js_i18n" then
+        return
+      end
+      local value = ev.data.params and ev.data.params.value
+      if value and value.kind == "end" then
+        virt_text.refresh_all()
       end
     end,
   })
