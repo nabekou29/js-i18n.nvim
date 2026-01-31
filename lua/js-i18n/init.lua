@@ -1,157 +1,182 @@
-local Client = require("js-i18n.client")
 local c = require("js-i18n.config")
+local virt_text = require("js-i18n.virt_text")
 
-local i18n = {}
+local M = {}
 
---- コマンド用の言語の補完関数を取得する
---- @param translation_sources I18n.TranslationSource[]
---- @return fun(string, string, number): string[]
-local function get_completion_available_languages(translation_sources)
-  return function(arg_lead, _cmd_line, _cursor_pos)
-    local matches = {}
-
-    local available_languages = {}
-    for _, source in ipairs(translation_sources) do
-      for _, lang in ipairs(source:get_available_languages()) do
-        available_languages[lang] = true
-      end
-    end
-
-    for lang, _ in pairs(available_languages) do
-      if lang:match(arg_lead) then
-        table.insert(matches, lang)
-      end
-    end
-    return matches
-  end
+--- Get the js_i18n LSP client for the current buffer.
+--- @return vim.lsp.Client?
+local function get_client()
+  local clients = vim.lsp.get_clients({ name = "js_i18n" })
+  return clients[1]
 end
 
---- @type I18n.Client
-i18n.client = nil
+--- Execute a command on the language server.
+--- @param command string
+--- @param arguments? any[]
+--- @param callback? fun(err: any, result: any)
+local function execute_command(command, arguments, callback)
+  local client = get_client()
+  if not client then
+    vim.notify("[js-i18n] Language server is not running.", vim.log.levels.WARN)
+    return
+  end
 
---- setup
---- @param opts I18n.Config
-i18n.setup = function(opts)
-  local hl = vim.api.nvim_set_hl
+  client:request("workspace/executeCommand", {
+    command = command,
+    arguments = arguments or {},
+  }, callback or function() end)
+end
 
-  hl(0, "@i18n.translation", { link = "Comment" })
-
-  local group = vim.api.nvim_create_augroup("js-i18n", {})
-  -- 設定の初期化
+--- @param opts? table
+M.setup = function(opts)
   c.setup(opts)
 
-  i18n.client = Client.new()
+  local cmd = c.config.server.cmd
+  if vim.fn.executable(cmd[1]) ~= 1 then
+    vim.notify_once(
+      "[js-i18n] Language server not found: "
+        .. cmd[1]
+        .. "\nInstall with: npm install -g js-i18n-language-server",
+      vim.log.levels.WARN
+    )
+    return
+  end
 
-  -- ファイルの変更などがあれば、バーチャルテキストを更新する
-  vim.api.nvim_create_autocmd({
-    "BufEnter",
-    "TextChanged",
-    "TextChangedI",
-    "TextChangedP",
-  }, {
+  -- Highlight group
+  vim.api.nvim_set_hl(0, "@i18n.translation", { link = "Comment", default = true })
+
+  -- LSP server configuration (Neovim 0.11+)
+  vim.lsp.config["js_i18n"] = {
+    cmd = cmd,
+    filetypes = {
+      "javascript",
+      "typescript",
+      "javascriptreact",
+      "typescriptreact",
+      "json",
+    },
+    root_markers = { "package.json", ".git" },
+    -- settings = c.build_server_settings(c.config.server),
+    -- handlers = {
+    --   ["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
+    --     if not c.config.diagnostic.enabled then
+    --       result.diagnostics = {}
+    --     else
+    --       for _, d in ipairs(result.diagnostics) do
+    --         d.severity = c.config.diagnostic.severity
+    --       end
+    --     end
+    --     vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
+    --   end,
+    -- },
+  }
+  vim.lsp.enable("js_i18n")
+
+  -- Virtual text autocmds
+  local group = vim.api.nvim_create_augroup("js-i18n", { clear = true })
+
+  vim.api.nvim_create_autocmd("LspAttach", {
+    group = group,
+    callback = function(ev)
+      local client = vim.lsp.get_client_by_id(ev.data.client_id)
+      if client and client.name == "js_i18n" then
+        virt_text.request_decorations(ev.buf)
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
     pattern = "*.{ts,js,tsx,jsx}",
     group = group,
     callback = function(ev)
-      local bufnr = ev.buf
-      i18n.client:update_js_file_handler(bufnr)
-    end,
-  })
-  local lspconfig = require("lspconfig")
-  local lsp_configs = require("lspconfig.configs")
-
-  if not lsp_configs.i18n_lsp then
-    lsp_configs.i18n_lsp = {
-      default_config = {
-        --- @param dispatchers vim.lsp.rpc.Dispatchers
-        --- @return vim.lsp.rpc.PublicClient
-        cmd = function(dispatchers)
-          return require("js-i18n.lsp").create_rpc(dispatchers, i18n.client)
-        end,
-        filetypes = {
-          "javascript",
-          "typescript",
-          "javascriptreact",
-          "typescriptreact",
-          "javascript.jsx",
-          "typescript.tsx",
-          "json",
-        },
-        single_file_support = true,
-      },
-    }
-  end
-  lspconfig.i18n_lsp.setup({
-    handlers = {
-      ["workspace/executeCommand"] = function(_err, _result, ctx)
-        if ctx.params.command == "i18n.editTranslation" then
-          local lang = ctx.params.arguments[1]
-          local key = ctx.params.arguments[2]
-          i18n.client:edit_translation(lang, key)
-        end
-      end,
-    },
-  })
-
-  --- 言語の変更
-  vim.api.nvim_create_user_command("I18nSetLang", function(opts)
-    local lang = opts.args
-    i18n.client:change_language(lang)
-  end, {
-    nargs = "?",
-    complete = function(...)
-      return get_completion_available_languages(vim.tbl_values(i18n.client.t_source_by_workspace))(
-        ...
-      )
-    end,
-  })
-  --- バーチャルテキストの有効化
-  vim.api.nvim_create_user_command("I18nVirtualTextEnable", function(_)
-    i18n.client:enable_virt_text()
-  end, {})
-  --- バーチャルテキストの無効化
-  vim.api.nvim_create_user_command("I18nVirtualTextDisable", function(_)
-    i18n.client:disable_virt_text()
-  end, {})
-  --- バーチャルテキストの有効化/無効化を切り替える
-  vim.api.nvim_create_user_command("I18nVirtualTextToggle", function(_)
-    i18n.client:toggle_virt_text()
-  end, {})
-
-  --- diagnostic の有効化
-  vim.api.nvim_create_user_command("I18nDiagnosticEnable", function(_)
-    i18n.client:enable_diagnostic()
-  end, {})
-  --- diagnostic の無効化
-  vim.api.nvim_create_user_command("I18nDiagnosticDisable", function(_)
-    i18n.client:disable_diagnostic()
-  end, {})
-  --- diagnostic の有効化/無効化を切り替える
-  vim.api.nvim_create_user_command("I18nDiagnosticToggle", function(_)
-    i18n.client:toggle_diagnostic()
-  end, {})
-
-  --- 文言の編集
-  vim.api.nvim_create_user_command("I18nEditTranslation", function(opts)
-    local lang = opts.args
-    i18n.client:edit_translation(lang)
-  end, {
-    nargs = "?",
-    complete = function(...)
-      return get_completion_available_languages(vim.tbl_values(i18n.client.t_source_by_workspace))(
-        ...
-      )
+      virt_text.request_decorations_debounced(ev.buf)
     end,
   })
 
-  -- カーソル上のキーを取得する
-  vim.api.nvim_create_user_command("I18nCopyKey", function(_)
-    local key = i18n.client:get_key_on_cursor()
-    if key == nil or key == "" then
-      vim.notify("No key found", vim.log.levels.ERROR)
-      return
+  -- User commands
+  vim.api.nvim_create_user_command("I18nSetLang", function(cmd_opts)
+    local lang = cmd_opts.args
+    if lang == "" then
+      lang = nil
     end
-    vim.fn.setreg("*", key)
+    execute_command("i18n.setCurrentLanguage", { { language = lang } }, function()
+      vim.schedule(function()
+        virt_text.refresh_all()
+      end)
+    end)
+  end, { nargs = "?" })
+
+  vim.api.nvim_create_user_command("I18nEditTranslation", function(cmd_opts)
+    local lang = cmd_opts.args
+    if lang == "" then
+      lang = nil
+    end
+    local key = nil -- server determines from cursor position via code action
+    execute_command("i18n.editTranslation", { lang, key })
+  end, { nargs = "?" })
+
+  vim.api.nvim_create_user_command("I18nVirtualTextEnable", function()
+    c.config.virt_text.enabled = true
+    virt_text.refresh_all()
+  end, {})
+
+  vim.api.nvim_create_user_command("I18nVirtualTextDisable", function()
+    c.config.virt_text.enabled = false
+    virt_text.clear_all_extmarks()
+  end, {})
+
+  vim.api.nvim_create_user_command("I18nVirtualTextToggle", function()
+    c.config.virt_text.enabled = not c.config.virt_text.enabled
+    if c.config.virt_text.enabled then
+      virt_text.refresh_all()
+    else
+      virt_text.clear_all_extmarks()
+    end
+  end, {})
+
+  vim.api.nvim_create_user_command("I18nDiagnosticEnable", function()
+    c.config.diagnostic.enabled = true
+  end, {})
+
+  vim.api.nvim_create_user_command("I18nDiagnosticDisable", function()
+    c.config.diagnostic.enabled = false
+    -- Clear existing diagnostics from js_i18n
+    local client = get_client()
+    if client then
+      vim.diagnostic.reset(vim.lsp.diagnostic.get_namespace(client.id, false))
+    end
+  end, {})
+
+  vim.api.nvim_create_user_command("I18nDiagnosticToggle", function()
+    if c.config.diagnostic.enabled then
+      vim.cmd("I18nDiagnosticDisable")
+    else
+      vim.cmd("I18nDiagnosticEnable")
+    end
+  end, {})
+
+  vim.api.nvim_create_user_command("I18nDeleteUnusedKeys", function()
+    local uri = vim.uri_from_bufnr(0)
+    execute_command("i18n.deleteUnusedKeys", { { uri = uri } }, function(err, result)
+      if err then
+        vim.schedule(function()
+          vim.notify(
+            "[js-i18n] Failed to delete unused keys: " .. tostring(err),
+            vim.log.levels.ERROR
+          )
+        end)
+        return
+      end
+      if result then
+        vim.schedule(function()
+          vim.notify(
+            "[js-i18n] Deleted " .. (result.deletedCount or 0) .. " unused key(s).",
+            vim.log.levels.INFO
+          )
+        end)
+      end
+    end)
   end, {})
 end
 
-return i18n
+return M
