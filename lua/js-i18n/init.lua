@@ -57,18 +57,6 @@ M.setup = function(opts)
     },
     root_markers = { "package.json", ".git" },
     settings = c.build_server_settings(c.config.server),
-    -- handlers = {
-    --   ["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
-    --     if not c.config.diagnostic.enabled then
-    --       result.diagnostics = {}
-    --     else
-    --       for _, d in ipairs(result.diagnostics) do
-    --         d.severity = c.config.diagnostic.severity
-    --       end
-    --     end
-    --     vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
-    --   end,
-    -- },
   }
   vim.lsp.enable("js_i18n")
 
@@ -135,27 +123,6 @@ M.setup = function(opts)
       virt_text.refresh_all()
     else
       virt_text.clear_all_extmarks()
-    end
-  end, {})
-
-  vim.api.nvim_create_user_command("I18nDiagnosticEnable", function()
-    c.config.diagnostic.enabled = true
-  end, {})
-
-  vim.api.nvim_create_user_command("I18nDiagnosticDisable", function()
-    c.config.diagnostic.enabled = false
-    -- Clear existing diagnostics from js_i18n
-    local client = get_client()
-    if client then
-      vim.diagnostic.reset(vim.lsp.diagnostic.get_namespace(client.id, false))
-    end
-  end, {})
-
-  vim.api.nvim_create_user_command("I18nDiagnosticToggle", function()
-    if c.config.diagnostic.enabled then
-      vim.cmd("I18nDiagnosticDisable")
-    else
-      vim.cmd("I18nDiagnosticEnable")
     end
   end, {})
 

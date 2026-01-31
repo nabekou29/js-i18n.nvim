@@ -7,7 +7,6 @@ describe("js-i18n.config", function()
       assert.are.equal(true, config.config.virt_text.enabled)
       assert.are.equal(false, config.config.virt_text.conceal_key)
       assert.are.equal(0, config.config.virt_text.max_width)
-      assert.are.equal(true, config.config.diagnostic.enabled)
       assert.are.equal("js-i18n-language-server", config.config.server.cmd[1])
     end)
 
@@ -52,10 +51,12 @@ describe("js-i18n.config", function()
         detect_language = function() end,
         libraries = {},
         respect_gitignore = true,
+        diagnostic = { enabled = true },
       })
       assert.is_nil(opts.detect_language)
       assert.is_nil(opts.libraries)
       assert.is_nil(opts.respect_gitignore)
+      assert.is_nil(opts.diagnostic)
     end)
   end)
 

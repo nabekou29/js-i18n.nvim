@@ -12,10 +12,6 @@ local M = {}
 --- @field conceal_key boolean
 --- @field max_width number
 
---- @class I18n.DiagnosticConfig
---- @field enabled boolean
---- @field severity integer
-
 --- @class I18n.ServerConfig
 --- @field cmd string[]
 --- @field translation_files? { file_pattern: string }
@@ -31,7 +27,6 @@ local M = {}
 
 --- @class I18n.Config
 --- @field virt_text I18n.VirtTextConfig
---- @field diagnostic I18n.DiagnosticConfig
 --- @field server I18n.ServerConfig
 
 --- @param text string
@@ -49,10 +44,6 @@ local default_config = {
     format = default_virt_text_format,
     conceal_key = false,
     max_width = 0,
-  },
-  diagnostic = {
-    enabled = true,
-    severity = vim.diagnostic.severity.WARN,
   },
   server = {
     cmd = { "js-i18n-language-server", "--stdio" },
@@ -139,7 +130,7 @@ function M.migrate_config(opts)
     table.insert(warnings, "namespace_separator -> server.namespace_separator")
   end
 
-  for _, key in ipairs({ "detect_language", "libraries", "respect_gitignore" }) do
+  for _, key in ipairs({ "detect_language", "libraries", "respect_gitignore", "diagnostic" }) do
     if opts[key] ~= nil then
       opts[key] = nil
       table.insert(warnings, key .. " has been removed (now handled by the server)")

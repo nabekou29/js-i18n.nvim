@@ -73,12 +73,6 @@ js-i18n.nvim is a Neovim plugin powered by [js-i18n-language-server](https://git
 
 - `:I18nVirtualTextToggle` - Toggles the display of virtual text.
 
-- `:I18nDiagnosticEnable` - Enables the display of diagnostic information.
-
-- `:I18nDiagnosticDisable` - Disables the display of diagnostic information.
-
-- `:I18nDiagnosticToggle` - Toggles the display of diagnostic information.
-
 - `:I18nDeleteUnusedKeys` - Deletes unused translation keys from the current JSON file.
 
 ## ⚙️ Configuration
@@ -93,10 +87,6 @@ The default settings are as follows. For the complete list, refer to [config.lua
     format = ...,          -- Format function for virtual text
     conceal_key = false,   -- Hide keys and display only translations
     max_width = 0,         -- Maximum display width of virtual text. 0 means unlimited.
-  },
-  diagnostic = {
-    enabled = true,        -- Enable the display of diagnostic information
-    severity = vim.diagnostic.severity.WARN,  -- Severity level of diagnostic information
   },
 
   -- Server settings

@@ -71,12 +71,6 @@ js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18
 
 - `:I18nVirtualTextToggle` - バーチャルテキストの表示を切り替えます。
 
-- `:I18nDiagnosticEnable` - 診断情報の表示を有効にします。
-
-- `:I18nDiagnosticDisable` - 診断情報の表示を無効にします。
-
-- `:I18nDiagnosticToggle` - 診断情報の表示を切り替えます。
-
 - `:I18nDeleteUnusedKeys` - 現在の JSON ファイルから未使用の翻訳キーを削除します。
 
 ## ⚙️ 設定
@@ -92,10 +86,6 @@ js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18
     format = ...,          -- バーチャルテキストのフォーマット関数
     conceal_key = false,   -- キーを隠して翻訳のみを表示する
     max_width = 0,         -- バーチャルテキストの最大幅。0の場合は無制限。
-  },
-  diagnostic = {
-    enabled = true,        -- 診断情報の表示を有効にする
-    severity = vim.diagnostic.severity.WARN,  -- 診断情報の重要度
   },
 
   -- サーバー設定
