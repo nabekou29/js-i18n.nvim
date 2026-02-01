@@ -3,11 +3,10 @@ local virt_text = require("js-i18n.virt_text")
 
 local M = {}
 
---- Get the js_i18n LSP client for the current buffer.
+--- Get the js_i18n LSP client.
 --- @return vim.lsp.Client?
 local function get_client()
-  local clients = vim.lsp.get_clients({ name = "js_i18n" })
-  return clients[1]
+  return vim.lsp.get_clients({ name = "js_i18n" })[1]
 end
 
 --- Execute a command on the language server.
@@ -20,49 +19,77 @@ local function execute_command(command, arguments, callback)
     vim.notify("[js-i18n] Language server is not running.", vim.log.levels.WARN)
     return
   end
-
   client:request("workspace/executeCommand", {
     command = command,
     arguments = arguments or {},
   }, callback or function() end)
 end
 
+--- Get the translation key at the current cursor position.
+--- @param callback fun(key: string)
+local function get_key_at_cursor(callback)
+  local uri = vim.uri_from_bufnr(0)
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local position = { line = cursor[1] - 1, character = cursor[2] }
+  execute_command("i18n.getKeyAtPosition", { { uri = uri, position = position } }, function(err, result)
+    if err or not result or not result.key then
+      vim.schedule(function()
+        vim.notify("[js-i18n] No translation key found at cursor.", vim.log.levels.WARN)
+      end)
+      return
+    end
+    callback(result.key)
+  end)
+end
+
 --- Show vim.ui.input to edit a translation value and save it.
 --- @param lang string
 --- @param key string
 local function prompt_edit_translation(lang, key)
-  execute_command(
-    "i18n.getTranslationValue",
-    { { lang = lang, key = key } },
-    function(val_err, val_result)
-      local current_value = ""
-      if not val_err and val_result and val_result.value then
-        current_value = val_result.value
-      end
-      vim.schedule(function()
-        vim.ui.input({
-          prompt = ("[%s] %s: "):format(lang, key),
-          default = current_value,
-        }, function(input)
-          if input == nil then
-            return
+  execute_command("i18n.getTranslationValue", { { lang = lang, key = key } }, function(val_err, val_result)
+    local current_value = ""
+    if not val_err and val_result and val_result.value then
+      current_value = val_result.value
+    end
+    vim.schedule(function()
+      vim.ui.input({
+        prompt = ("[%s] %s: "):format(lang, key),
+        default = current_value,
+      }, function(input)
+        if input == nil then
+          return
+        end
+        execute_command("i18n.editTranslation", {
+          { lang = lang, key = key, value = input },
+        }, function(edit_err)
+          if edit_err then
+            vim.schedule(function()
+              vim.notify("[js-i18n] Failed to edit translation: " .. tostring(edit_err), vim.log.levels.ERROR)
+            end)
           end
-          execute_command("i18n.editTranslation", {
-            { lang = lang, key = key, value = input },
-          }, function(edit_err)
-            if edit_err then
-              vim.schedule(function()
-                vim.notify(
-                  "[js-i18n] Failed to edit translation: " .. tostring(edit_err),
-                  vim.log.levels.ERROR
-                )
-              end)
-            end
-          end)
         end)
       end)
+    end)
+  end)
+end
+
+--- Resolve lang, falling back to getCurrentLanguage from the server.
+--- @param lang? string
+--- @param callback fun(lang: string)
+local function resolve_language(lang, callback)
+  if lang then
+    callback(lang)
+    return
+  end
+  execute_command("i18n.getCurrentLanguage", {}, function(err, result)
+    if err or not result or not result.language then
+      vim.schedule(function()
+        vim.notify("[js-i18n] No current language set. Use :I18nSetLang first.", vim.log.levels.WARN)
+      end)
+      return
     end
-  )
+    callback(result.language)
+  end)
 end
 
 --- @param opts? table
@@ -143,57 +170,17 @@ M.setup = function(opts)
 
   -- User commands
   vim.api.nvim_create_user_command("I18nSetLang", function(cmd_opts)
-    local lang = cmd_opts.args
-    if lang == "" then
-      lang = nil
-    end
-    execute_command("i18n.setCurrentLanguage", { { language = lang } }, function()
-      vim.schedule(function()
-        virt_text.refresh_all()
-      end)
-    end)
+    local lang = cmd_opts.args ~= "" and cmd_opts.args or nil
+    execute_command("i18n.setCurrentLanguage", { { language = lang } })
   end, { nargs = "?" })
 
   vim.api.nvim_create_user_command("I18nEditTranslation", function(cmd_opts)
-    local lang = cmd_opts.args
-    if lang == "" then
-      lang = nil
-    end
-
-    -- Get key at cursor position
-    local uri = vim.uri_from_bufnr(0)
-    local cursor = vim.api.nvim_win_get_cursor(0)
-    local position = { line = cursor[1] - 1, character = cursor[2] }
-
-    execute_command(
-      "i18n.getKeyAtPosition",
-      { { uri = uri, position = position } },
-      function(err, key_result)
-        if err or not key_result or not key_result.key then
-          vim.schedule(function()
-            vim.notify("[js-i18n] No translation key found at cursor.", vim.log.levels.WARN)
-          end)
-          return
-        end
-
-        if lang then
-          prompt_edit_translation(lang, key_result.key)
-        else
-          execute_command("i18n.getCurrentLanguage", {}, function(lang_err, lang_result)
-            if lang_err or not lang_result or not lang_result.language then
-              vim.schedule(function()
-                vim.notify(
-                  "[js-i18n] No current language set. Use :I18nSetLang first.",
-                  vim.log.levels.WARN
-                )
-              end)
-              return
-            end
-            prompt_edit_translation(lang_result.language, key_result.key)
-          end)
-        end
-      end
-    )
+    local lang = cmd_opts.args ~= "" and cmd_opts.args or nil
+    get_key_at_cursor(function(key)
+      resolve_language(lang, function(resolved_lang)
+        prompt_edit_translation(resolved_lang, key)
+      end)
+    end)
   end, { nargs = "?" })
 
   vim.api.nvim_create_user_command("I18nVirtualTextEnable", function()
@@ -216,29 +203,12 @@ M.setup = function(opts)
   end, {})
 
   vim.api.nvim_create_user_command("I18nCopyKey", function()
-    local uri = vim.uri_from_bufnr(0)
-    local cursor = vim.api.nvim_win_get_cursor(0)
-    local position = { line = cursor[1] - 1, character = cursor[2] }
-    execute_command(
-      "i18n.getKeyAtPosition",
-      { { uri = uri, position = position } },
-      function(err, result)
-        if err then
-          vim.schedule(function()
-            vim.notify("[js-i18n] Failed to get key: " .. tostring(err), vim.log.levels.ERROR)
-          end)
-          return
-        end
-        vim.schedule(function()
-          if result and result.key then
-            vim.fn.setreg("+", result.key)
-            vim.notify("[js-i18n] Copied: " .. result.key, vim.log.levels.INFO)
-          else
-            vim.notify("[js-i18n] No translation key found at cursor.", vim.log.levels.WARN)
-          end
-        end)
-      end
-    )
+    get_key_at_cursor(function(key)
+      vim.schedule(function()
+        vim.fn.setreg("+", key)
+        vim.notify("[js-i18n] Copied: " .. key, vim.log.levels.INFO)
+      end)
+    end)
   end, {})
 
   vim.api.nvim_create_user_command("I18nDeleteUnusedKeys", function()
