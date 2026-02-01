@@ -1,5 +1,4 @@
 local c = require("js-i18n.config")
-local utils = require("js-i18n.utils")
 
 local ns_id = vim.api.nvim_create_namespace("I18n")
 
@@ -34,9 +33,6 @@ local function render_decorations(bufnr, decorations)
     local col = range["end"].character
 
     local text = dec.value
-    if c.config.virt_text.max_width > 0 then
-      text = utils.truncate_display_width(text, c.config.virt_text.max_width, "...")
-    end
 
     local virt_text = c.config.virt_text.format(text, {
       key = dec.key,
@@ -82,10 +78,14 @@ function M.request_decorations(bufnr)
   end
 
   local uri = vim.uri_from_bufnr(bufnr)
+  local args = { uri = uri }
+  if c.config.virt_text.max_width > 0 then
+    args.maxWidth = c.config.virt_text.max_width
+  end
 
   client:request("workspace/executeCommand", {
     command = "i18n.getDecorations",
-    arguments = { { uri = uri } },
+    arguments = { args },
   }, function(err, result)
     if err or not result then
       return
