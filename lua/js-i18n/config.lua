@@ -5,6 +5,7 @@ local M = {}
 --- @class I18n.VirtText.FormatOpts
 --- @field key string
 --- @field value string
+--- @field conceal_key boolean
 
 --- @class I18n.VirtTextConfig
 --- @field enabled boolean
@@ -30,10 +31,13 @@ local M = {}
 --- @field server I18n.ServerConfig
 
 --- @param text string
---- @param _opts I18n.VirtText.FormatOpts
+--- @param opts I18n.VirtText.FormatOpts
 --- @return string
-local function default_virt_text_format(text, _opts)
+local function default_virt_text_format(text, opts)
   text = utils.escape_translation_text(text)
+  if opts.conceal_key then
+    return " " .. text .. " "
+  end
   return " : " .. text
 end
 

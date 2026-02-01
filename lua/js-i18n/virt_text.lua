@@ -37,6 +37,7 @@ local function render_decorations(bufnr, decorations)
     local virt_text = c.config.virt_text.format(text, {
       key = dec.key,
       value = dec.value,
+      conceal_key = c.config.virt_text.conceal_key,
     })
     if type(virt_text) == "string" then
       virt_text = { { virt_text, "@i18n.translation" } }
