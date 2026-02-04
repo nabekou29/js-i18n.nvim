@@ -1,0 +1,24 @@
+# https://mise.jdx.dev/configuration.html
+
+[tasks.take-readme-assets]
+run = ["vhs js-i18n.tape", "vhs screenshot.tape"]
+dir = "demo"
+
+[tasks.move-readme-assets]
+description = "Move readme assets from demo/ to docs/assets/"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+files=(
+  i18next-screenshot.png
+  next-intl-screenshot.png
+  js-i18n.mp4
+)
+
+mkdir -p docs/assets
+
+for file in "${files[@]}"; do
+  mv "demo/${file}" "docs/assets/${file}"
+done
+"""
