@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="./README.md">English</a> | <b>日本語(原文|Original)</b>
+    <a href="../README.md">English</a> | <b>日本語(原文|Original)</b>
 </div>
 
 # 🌐 js-i18n.nvim
@@ -10,7 +10,7 @@
 js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server) を利用した Neovim プラグインです。JavaScript/TypeScript の i18n ライブラリをサポートします。
 
 <div>
-  <video src="https://github.com/user-attachments/assets/abcd728d-42d1-46d2-8d18-072102b1cf71" type="video/mp4" />
+  <video src="./assets/js-i18n.mp4" type="video/mp4" />
 </div>
 
 ## ✨ 機能
@@ -29,11 +29,11 @@ js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18
 
 #### [i18next](https://www.i18next.com/), [react-i18next](https://react.i18next.com/)
 
-![i18next-screenshot](https://github.com/user-attachments/assets/349f5242-f717-4af9-9790-623ddad0492f)
+![i18next-screenshot](./assets/i18next-screenshot.png)
 
 #### [next-intl](https://next-intl-docs.vercel.app/)
 
-![next-intl-screenshot](https://github.com/user-attachments/assets/e6873336-5161-40b1-9bcc-c845ca750860)
+![next-intl-screenshot](./assets/next-intl-screenshot.png)
 
 ## ✅ 必須条件
 
@@ -78,7 +78,7 @@ js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18
 ## ⚙️ 設定
 
 デフォルトの設定は以下の通りです。
-完全な設定の一覧は [config.lua](./lua/js-i18n/config.lua) を参照してください。
+完全な設定の一覧は [config.lua](../lua/js-i18n/config.lua) を参照してください。
 
 ```lua
 {

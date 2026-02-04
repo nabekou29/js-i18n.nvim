@@ -1,5 +1,5 @@
 <div align="center">
-  <b>English</b> | <a href="./README-ja.md">日本語(原文|Original)</a>
+  <b>English</b> | <a href="./docs/README-ja.md">日本語(原文|Original)</a>
 </div>
 
 <br />
@@ -12,7 +12,7 @@
 js-i18n.nvim is a Neovim plugin powered by [js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server) that supports JavaScript/TypeScript i18n libraries.
 
 <div>
-  <video src="https://github.com/user-attachments/assets/abcd728d-42d1-46d2-8d18-072102b1cf71" type="video/mp4" />
+  <video src="./docs/assets/js-i18n.mp4" type="video/mp4" />
 </div>
 
 ## ✨ Features
@@ -31,11 +31,11 @@ js-i18n.nvim is a Neovim plugin powered by [js-i18n-language-server](https://git
 
 #### [i18next](https://www.i18next.com/), [react-i18next](https://react.i18next.com/)
 
-![i18next-screenshot](https://github.com/user-attachments/assets/349f5242-f717-4af9-9790-623ddad0492f)
+![i18next-screenshot](./docs/assets/i18next-screenshot.png)
 
 #### [next-intl](https://next-intl-docs.vercel.app/)
 
-![next-intl-screenshot](https://github.com/user-attachments/assets/e6873336-5161-40b1-9bcc-c845ca750860)
+![next-intl-screenshot](./docs/assets/next-intl-screenshot.png)
 
 ## ✅ Requirements
 
