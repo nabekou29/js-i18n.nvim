@@ -11,7 +11,6 @@ local M = {}
 --- @field enabled boolean
 --- @field format fun(text: string, opts: I18n.VirtText.FormatOpts): string|string[][]
 --- @field conceal_key boolean
---- @field max_width number
 
 --- @class I18n.ServerConfig
 --- @field cmd string[]
@@ -22,7 +21,7 @@ local M = {}
 --- @field primary_languages? string[]
 --- @field required_languages? string[]
 --- @field optional_languages? string[]
---- @field virtual_text? { max_length: number }
+--- @field virtual_text? { max_length: number?, max_width: number? }
 --- @field diagnostics? { unused_keys: boolean }
 --- @field indexing? { num_threads: number? }
 
@@ -47,7 +46,6 @@ local default_config = {
     enabled = true,
     format = default_virt_text_format,
     conceal_key = false,
-    max_width = 0,
   },
   server = {
     cmd = { "js-i18n-language-server", "--stdio" },
@@ -91,7 +89,10 @@ function M.build_server_settings(server_config)
     settings.optionalLanguages = server_config.optional_languages
   end
   if server_config.virtual_text then
-    settings.virtualText = { maxLength = server_config.virtual_text.max_length }
+    settings.virtualText = {
+      maxLength = server_config.virtual_text.max_length,
+      maxWidth = server_config.virtual_text.max_width,
+    }
   end
   if server_config.diagnostics then
     settings.diagnostics = { unusedKeys = server_config.diagnostics.unused_keys }

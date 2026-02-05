@@ -171,7 +171,25 @@ M.setup = function(opts)
   -- User commands
   vim.api.nvim_create_user_command("I18nSetLang", function(cmd_opts)
     local lang = cmd_opts.args ~= "" and cmd_opts.args or nil
-    execute_command("i18n.setCurrentLanguage", { { language = lang } })
+    if lang then
+      execute_command("i18n.setCurrentLanguage", { { language = lang } })
+    else
+      execute_command("i18n.getAvailableLanguages", {}, function(err, result)
+        if err or not result or not result.languages or #result.languages == 0 then
+          vim.schedule(function()
+            vim.notify("[js-i18n] No languages available.", vim.log.levels.WARN)
+          end)
+          return
+        end
+        vim.schedule(function()
+          vim.ui.select(result.languages, { prompt = "Select language:" }, function(selected)
+            if selected then
+              execute_command("i18n.setCurrentLanguage", { { language = selected } })
+            end
+          end)
+        end)
+      end)
+    end
   end, { nargs = "?" })
 
   vim.api.nvim_create_user_command("I18nEditTranslation", function(cmd_opts)

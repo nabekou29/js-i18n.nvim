@@ -6,16 +6,15 @@ describe("js-i18n.config", function()
       config.setup({})
       assert.are.equal(true, config.config.virt_text.enabled)
       assert.are.equal(false, config.config.virt_text.conceal_key)
-      assert.are.equal(0, config.config.virt_text.max_width)
       assert.are.equal("js-i18n-language-server", config.config.server.cmd[1])
     end)
 
     it("should merge user options with defaults", function()
       config.setup({
-        virt_text = { max_width = 50 },
+        virt_text = { conceal_key = true },
         server = { key_separator = "-" },
       })
-      assert.are.equal(50, config.config.virt_text.max_width)
+      assert.are.equal(true, config.config.virt_text.conceal_key)
       assert.are.equal(true, config.config.virt_text.enabled)
       assert.are.equal("-", config.config.server.key_separator)
     end)
