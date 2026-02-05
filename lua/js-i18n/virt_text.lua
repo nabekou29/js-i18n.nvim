@@ -79,14 +79,10 @@ function M.request_decorations(bufnr)
   end
 
   local uri = vim.uri_from_bufnr(bufnr)
-  local args = { uri = uri }
-  if c.config.virt_text.max_width > 0 then
-    args.maxWidth = c.config.virt_text.max_width
-  end
 
   client:request("workspace/executeCommand", {
     command = "i18n.getDecorations",
-    arguments = { args },
+    arguments = { { uri = uri } },
   }, function(err, result)
     if err or not result then
       return
