@@ -38,6 +38,8 @@ local function render_decorations(bufnr, decorations)
       key = dec.key,
       value = dec.value,
       conceal_key = c.config.virt_text.conceal_key,
+      max_length = c.config.virt_text.max_length,
+      max_width = c.config.virt_text.max_width,
     })
     if type(virt_text) == "string" then
       virt_text = { { virt_text, "@i18n.translation" } }
