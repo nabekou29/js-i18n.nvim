@@ -1,6 +1,36 @@
 local utils = require("js-i18n.utils")
 
 describe("js-i18n.utils", function()
+  describe("utf_truncate", function()
+    -- stylua: ignore start
+    local tests = {
+      { str = "abcde",      max = 5, ellipsis = "",    expected = "abcde" },
+      { str = "abcde",      max = 5, ellipsis = "…",   expected = "abcde" },
+      { str = "abcdef",     max = 5, ellipsis = "…",   expected = "abcd…" },
+      { str = "abcdef",     max = 5, ellipsis = "...", expected = "ab..." },
+      { str = "あいうえお", max = 5, ellipsis = "",    expected = "あいうえお" },
+      { str = "あいうえお", max = 5, ellipsis = "…",   expected = "あいうえお" },
+      { str = "あいうえお", max = 3, ellipsis = "…",   expected = "あい…" },
+      { str = "あいうえお", max = 3, ellipsis = "...", expected = "..." },
+    }
+    -- stylua: ignore end
+
+    for _, test in ipairs(tests) do
+      it(
+        string.format(
+          "should return %q when truncating %q to %d characters (ellipsis: %q)",
+          test.expected,
+          test.str,
+          test.max,
+          test.ellipsis
+        ),
+        function()
+          assert.are.equal(test.expected, utils.utf_truncate(test.str, test.max, test.ellipsis))
+        end
+      )
+    end
+  end)
+
   describe("truncate_display_width", function()
     -- stylua: ignore start
     local tests = {
