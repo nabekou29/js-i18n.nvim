@@ -6,6 +6,8 @@ describe("js-i18n.config", function()
       config.setup({})
       assert.are.equal(true, config.config.virt_text.enabled)
       assert.are.equal(false, config.config.virt_text.conceal_key)
+      assert.are.equal(0, config.config.virt_text.max_length)
+      assert.are.equal(0, config.config.virt_text.max_width)
       assert.are.equal("js-i18n-language-server", config.config.server.cmd[1])
     end)
 
@@ -67,7 +69,6 @@ describe("js-i18n.config", function()
         namespace_separator = ":",
         primary_languages = { "ja" },
         translation_files = { file_pattern = "**/locales/*.json" },
-        virtual_text = { max_length = 50 },
         diagnostics = { unused_keys = true },
         indexing = { num_threads = 4 },
       })
@@ -75,7 +76,6 @@ describe("js-i18n.config", function()
       assert.are.equal(":", settings.namespaceSeparator)
       assert.are.same({ "ja" }, settings.primaryLanguages)
       assert.are.equal("**/locales/*.json", settings.translationFiles.filePattern)
-      assert.are.equal(50, settings.virtualText.maxLength)
       assert.are.equal(true, settings.diagnostics.unusedKeys)
       assert.are.equal(4, settings.indexing.numThreads)
     end)
