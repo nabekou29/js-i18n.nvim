@@ -88,6 +88,8 @@ The default settings are as follows. For the complete list, refer to [config.lua
     enabled = true,        -- Enable virtual text display
     format = ...,          -- Format function for virtual text
     conceal_key = false,   -- Hide keys and display only translations
+    max_length = 0,        -- Max character length (0 = unlimited)
+    max_width = 0,         -- Max display width (0 = unlimited)
   },
 
   -- Server settings
@@ -101,7 +103,6 @@ The default settings are as follows. For the complete list, refer to [config.lua
     primary_languages = nil,
     required_languages = nil,
     optional_languages = nil,
-    virtual_text = { max_length = 30 },
     diagnostics = { unused_keys = true },
   },
 }

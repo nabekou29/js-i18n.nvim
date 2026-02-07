@@ -87,6 +87,8 @@ js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18
     enabled = true,        -- バーチャルテキストの表示を有効にする
     format = ...,          -- バーチャルテキストのフォーマット関数
     conceal_key = false,   -- キーを隠して翻訳のみを表示する
+    max_length = 0,        -- 最大文字数 (0 = 無制限)
+    max_width = 0,         -- 最大表示幅 (0 = 無制限)
   },
 
   -- サーバー設定
@@ -100,7 +102,6 @@ js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18
     primary_languages = nil,
     required_languages = nil,
     optional_languages = nil,
-    virtual_text = { max_length = 30 },
     diagnostics = { unused_keys = true },
   },
 }
