@@ -64,7 +64,7 @@ describe("js-i18n.config", function()
   describe("build_server_settings", function()
     it("should convert snake_case to camelCase", function()
       local settings = config.build_server_settings({
-        cmd = { "js-i18n-language-server", "--stdio" },
+        cmd = { "js-i18n-language-server" },
         key_separator = "-",
         namespace_separator = ":",
         primary_languages = { "ja" },
@@ -82,7 +82,7 @@ describe("js-i18n.config", function()
 
     it("should omit nil fields", function()
       local settings = config.build_server_settings({
-        cmd = { "js-i18n-language-server", "--stdio" },
+        cmd = { "js-i18n-language-server" },
       })
       assert.is_nil(settings.keySeparator)
       assert.is_nil(settings.translationFiles)
