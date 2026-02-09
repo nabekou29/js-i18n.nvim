@@ -95,7 +95,7 @@ The default settings are as follows. For the complete list, refer to [config.lua
   -- Server settings
   -- Can also be configured via .js-i18n.json file (which takes priority)
   server = {
-    cmd = { "js-i18n-language-server", "--stdio" },  -- Server command
+    cmd = { "js-i18n-language-server" },  -- Server command
     translation_files = { file_pattern = "**/{locales,messages}/**/*.json" },
     key_separator = ".",
     namespace_separator = nil,

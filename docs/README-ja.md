@@ -94,7 +94,7 @@ js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18
   -- サーバー設定
   -- .js-i18n.json ファイルでも設定可能（そちらが優先されます）
   server = {
-    cmd = { "js-i18n-language-server", "--stdio" },  -- サーバーコマンド
+    cmd = { "js-i18n-language-server" },  -- サーバーコマンド
     translation_files = { file_pattern = "**/{locales,messages}/**/*.json" },
     key_separator = ".",
     namespace_separator = nil,

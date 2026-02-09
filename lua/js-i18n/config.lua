@@ -58,7 +58,7 @@ local default_config = {
     max_width = 0,
   },
   server = {
-    cmd = { "js-i18n-language-server", "--stdio" },
+    cmd = { "js-i18n-language-server" },
   },
 }
 
