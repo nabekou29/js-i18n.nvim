@@ -65,6 +65,51 @@ describe("js-i18n.utils", function()
     end
   end)
 
+  describe("parse_version", function()
+    it("should parse a valid semver string", function()
+      local v = utils.parse_version("1.2.3")
+      assert.are.same({ major = 1, minor = 2, patch = 3 }, v)
+    end)
+
+    it("should parse version with leading zeros", function()
+      local v = utils.parse_version("0.4.0")
+      assert.are.same({ major = 0, minor = 4, patch = 0 }, v)
+    end)
+
+    it("should ignore pre-release suffix", function()
+      local v = utils.parse_version("1.2.3-beta.1")
+      assert.are.same({ major = 1, minor = 2, patch = 3 }, v)
+    end)
+
+    it("should return nil for invalid version string", function()
+      assert.is_nil(utils.parse_version("invalid"))
+      assert.is_nil(utils.parse_version("1.2"))
+      assert.is_nil(utils.parse_version(""))
+    end)
+  end)
+
+  describe("compare_versions", function()
+    it("should return 0 for equal versions", function()
+      assert.are.equal(0, utils.compare_versions("1.2.3", "1.2.3"))
+    end)
+
+    it("should return -1 when first version is older", function()
+      assert.are.equal(-1, utils.compare_versions("0.3.9", "0.4.0"))
+      assert.are.equal(-1, utils.compare_versions("0.4.2", "0.4.3"))
+      assert.are.equal(-1, utils.compare_versions("0.4.3", "1.0.0"))
+    end)
+
+    it("should return 1 when first version is newer", function()
+      assert.are.equal(1, utils.compare_versions("0.4.0", "0.3.9"))
+      assert.are.equal(1, utils.compare_versions("1.0.0", "0.9.9"))
+    end)
+
+    it("should return 0 for invalid versions", function()
+      assert.are.equal(0, utils.compare_versions("invalid", "1.0.0"))
+      assert.are.equal(0, utils.compare_versions("1.0.0", "invalid"))
+    end)
+  end)
+
   describe("escape_translation_text", function()
     it("should escape newlines", function()
       assert.are.equal("hello\\nworld", utils.escape_translation_text("hello\nworld"))

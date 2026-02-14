@@ -62,4 +62,36 @@ function M.escape_translation_text(str)
   return (str:gsub(".", escapes))
 end
 
+--- Parse a semver string into {major, minor, patch}.
+--- @param version string
+--- @return {major: number, minor: number, patch: number}|nil
+function M.parse_version(version)
+  local major, minor, patch = version:match("^(%d+)%.(%d+)%.(%d+)")
+  if not major then
+    return nil
+  end
+  return { major = tonumber(major), minor = tonumber(minor), patch = tonumber(patch) }
+end
+
+--- Compare two semver strings. Returns -1, 0, or 1.
+--- @param a string
+--- @param b string
+--- @return integer
+function M.compare_versions(a, b)
+  local va = M.parse_version(a)
+  local vb = M.parse_version(b)
+  if not va or not vb then
+    return 0
+  end
+  for _, key in ipairs({ "major", "minor", "patch" }) do
+    if va[key] < vb[key] then
+      return -1
+    end
+    if va[key] > vb[key] then
+      return 1
+    end
+  end
+  return 0
+end
+
 return M
