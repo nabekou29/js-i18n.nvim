@@ -4,7 +4,7 @@ local virt_text = require("js-i18n.virt_text")
 
 local M = {}
 
-local MINIMUM_SERVER_VERSION = "0.4.0"
+local MINIMUM_SERVER_VERSION = "0.5.0"
 
 --- Get the js_i18n LSP client.
 --- @return vim.lsp.Client?
