@@ -47,6 +47,16 @@ powered by [nabekou29/js-i18n-language-server](https://github.com/nabekou29/js-i
   npm install -g js-i18n-language-server
   ```
 
+  グローバルインストールせずに `npx` を使用することもできます。設定でサーバーコマンドを指定してください:
+
+  ```lua
+  opts = {
+    server = {
+      cmd = { "npx", "-y", "js-i18n-language-server" },
+    },
+  }
+  ```
+
 ## 📦 インストール
 
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
