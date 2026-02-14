@@ -48,6 +48,16 @@
   npm install -g js-i18n-language-server
   ```
 
+  Alternatively, you can skip the global install and use `npx` by setting the server command in your config:
+
+  ```lua
+  opts = {
+    server = {
+      cmd = { "npx", "-y", "js-i18n-language-server" },
+    },
+  }
+  ```
+
 ## 📦 Installation
 
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
