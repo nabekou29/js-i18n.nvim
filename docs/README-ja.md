@@ -1,37 +1,40 @@
 <div align="center">
-    <a href="../README.md">English</a> | <b>日本語(原文|Original)</b>
+  <img src="./assets/icon.png" width="128" height="128" alt="js-i18n.nvim">
+  <h1>js-i18n.nvim</h1>
+  <a href="../README.md">English</a> | <b>日本語(原文|Original)</b>
 </div>
 
-# 🌐 js-i18n.nvim
+**Neovim 向けの JavaScript/TypeScript i18n ライブラリサポート**.
+powered by [nabekou29/js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server).
 
-[![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
-[![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
-
-js-i18n.nvim は、[js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server) を利用した Neovim プラグインです。JavaScript/TypeScript の i18n ライブラリをサポートします。
-
-<div>
-  <video src="./assets/js-i18n.mp4" type="video/mp4" />
-</div>
-
-## ✨ 機能
-
-- 翻訳をバーチャルテキストとして表示
-- 翻訳の編集 (コマンド or コードアクション)
-- 翻訳が不足している場合のエラー表示
-- 未使用の翻訳キーの検出
-- 定義ジャンプ
-- ホバーによる翻訳の表示
-- キーの補完
-- 参照の検索
-- いくつかのライブラリのサポート (i18next, react-i18next, next-intl)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest) [![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
 
 ### サポートしているライブラリ
 
-#### [i18next](https://www.i18next.com/), [react-i18next](https://react.i18next.com/)
+- [i18next](https://www.i18next.com/) / [react-i18next](https://react.i18next.com/)
+- [next-intl](https://next-intl-docs.vercel.app/)
+
+## ✨ 機能
+
+- **翻訳のインライン表示** -- 翻訳値をバーチャルテキストとしてコード上に直接表示
+- **翻訳の診断** -- 不足している翻訳キーや未使用の翻訳キーを検出
+- **補完** -- 翻訳キーを入力中に自動補完
+- **ホバー** -- キーにカーソルを合わせて全言語の翻訳を表示
+- **定義ジャンプ** -- JSON 翻訳ファイル内のキー定義にジャンプ
+- **参照の検索** -- ソースコード内の翻訳キーの使用箇所をすべて検索
+- **翻訳の編集** -- コマンドやコードアクションから翻訳値を編集
+- **キーのコピー** -- カーソル位置の翻訳キーをクリップボードにコピー
+- **未使用キーの削除** -- コードから参照されていない翻訳キーを削除
+
+## Demo
+
+<video src="https://github.com/user-attachments/assets/11bd0e3a-181d-4fe1-af36-5d8e78ea2fd0" ></video>
+
+#### i18next / react-i18next
 
 ![i18next-screenshot](./assets/i18next-screenshot.png)
 
-#### [next-intl](https://next-intl-docs.vercel.app/)
+#### next-intl
 
 ![next-intl-screenshot](./assets/next-intl-screenshot.png)
 

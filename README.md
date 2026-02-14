@@ -1,39 +1,41 @@
 <div align="center">
+  <img src="docs/assets/icon.png" width="128" height="128" alt="js-i18n.nvim">
+  <h1>js-i18n.nvim</h1>
   <b>English</b> | <a href="./docs/README-ja.md">日本語(原文|Original)</a>
 </div>
 
-<br />
+<br/>
 
-# 🌐 js-i18n.nvim
+**JavaScript/TypeScript i18n library support for Neovim**. powered by [nabekou29/js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server).
 
-[![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest)
-[![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
-
-js-i18n.nvim is a Neovim plugin powered by [js-i18n-language-server](https://github.com/nabekou29/js-i18n-language-server) that supports JavaScript/TypeScript i18n libraries.
-
-<div>
-  <video src="./docs/assets/js-i18n.mp4" type="video/mp4" />
-</div>
-
-## ✨ Features
-
-- Display translations as virtual text
-- Edit translations (via command or code action)
-- Show error when a translation for the key is not found
-- Detect unused translation keys
-- Jump to definition of translation resources
-- Display translations for each language on hover
-- Key completion
-- Find references
-- Support for multiple libraries (i18next, react-i18next, next-intl)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![GitHub Release](https://img.shields.io/github/release/nabekou29/js-i18n.nvim?style=flat)](https://github.com/nabekou29/js-i18n.nvim/releases/latest) [![tests](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml/badge.svg)](https://github.com/nabekou29/js-i18n.nvim/actions/workflows/test.yaml)
 
 ### Supported Libraries
 
-#### [i18next](https://www.i18next.com/), [react-i18next](https://react.i18next.com/)
+- [i18next](https://www.i18next.com/) / [react-i18next](https://react.i18next.com/)
+- [next-intl](https://next-intl-docs.vercel.app/)
+
+## ✨ Features
+
+- **Inline translation display** -- See translation values directly in your code as virtual text
+- **Translation diagnostics** -- Detect missing and unused translation keys
+- **Completion** -- Auto-complete translation keys as you type
+- **Hover** -- View all translation values by hovering over a key
+- **Go to definition** -- Jump to the key definition in JSON translation files
+- **Find references** -- Find all usages of a translation key in source code
+- **Edit translations** -- Edit translation values from commands or code actions
+- **Copy key** -- Copy the translation key at cursor to clipboard
+- **Delete unused keys** -- Remove translation keys not referenced in code
+
+## Demo
+
+<video src="https://github.com/user-attachments/assets/11bd0e3a-181d-4fe1-af36-5d8e78ea2fd0" ></video>
+
+#### i18next / react-i18next
 
 ![i18next-screenshot](./docs/assets/i18next-screenshot.png)
 
-#### [next-intl](https://next-intl-docs.vercel.app/)
+#### next-intl
 
 ![next-intl-screenshot](./docs/assets/next-intl-screenshot.png)
 
@@ -132,7 +134,6 @@ v1.0 has been rewritten to use the external [js-i18n-language-server](https://gi
 
 - **Dependencies**: `nvim-lspconfig`, `nvim-treesitter`, `plenary.nvim`, and `jq` are no longer required
 - **Requirements**: `js-i18n-language-server` must be installed
-- **Neovim version**: 0.11 or higher is required
 - **Configuration**: Server-related settings have moved into the `server` table
 
 Deprecated config keys are automatically converted and a warning is displayed.
