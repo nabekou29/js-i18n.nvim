@@ -32,7 +32,7 @@ describe("js-i18n.config", function()
     it("should migrate translation_source to server.translation_files", function()
       local opts = config.migrate_config({ translation_source = { "**/locales/*.json" } })
       assert.is_nil(opts.translation_source)
-      assert.are.equal("**/locales/*.json", opts.server.translation_files.file_pattern)
+      assert.are.same({ "**/locales/*.json" }, opts.server.translation_files.include_patterns)
     end)
 
     it("should migrate key_separator to server.key_separator", function()
@@ -68,15 +68,39 @@ describe("js-i18n.config", function()
         key_separator = "-",
         namespace_separator = ":",
         primary_languages = { "ja" },
-        translation_files = { file_pattern = "**/locales/*.json" },
-        diagnostics = { unused_keys = true },
+        translation_files = {
+          include_patterns = { "**/locales/*.json" },
+          exclude_patterns = { "**/node_modules/**" },
+        },
+        include_patterns = { "**/*.{ts,tsx}" },
+        exclude_patterns = { "node_modules/**" },
+        diagnostics = {
+          missing_translation = {
+            enabled = false,
+            severity = "error",
+            required_languages = { "en", "ja" },
+          },
+          unused_translation = {
+            enabled = true,
+            severity = "hint",
+            ignore_patterns = { "debug.*" },
+          },
+        },
         indexing = { num_threads = 4 },
       })
       assert.are.equal("-", settings.keySeparator)
       assert.are.equal(":", settings.namespaceSeparator)
       assert.are.same({ "ja" }, settings.primaryLanguages)
-      assert.are.equal("**/locales/*.json", settings.translationFiles.filePattern)
-      assert.are.equal(true, settings.diagnostics.unusedKeys)
+      assert.are.same({ "**/locales/*.json" }, settings.translationFiles.includePatterns)
+      assert.are.same({ "**/node_modules/**" }, settings.translationFiles.excludePatterns)
+      assert.are.same({ "**/*.{ts,tsx}" }, settings.includePatterns)
+      assert.are.same({ "node_modules/**" }, settings.excludePatterns)
+      assert.are.equal(false, settings.diagnostics.missingTranslation.enabled)
+      assert.are.equal("error", settings.diagnostics.missingTranslation.severity)
+      assert.are.same({ "en", "ja" }, settings.diagnostics.missingTranslation.requiredLanguages)
+      assert.are.equal(true, settings.diagnostics.unusedTranslation.enabled)
+      assert.are.equal("hint", settings.diagnostics.unusedTranslation.severity)
+      assert.are.same({ "debug.*" }, settings.diagnostics.unusedTranslation.ignorePatterns)
       assert.are.equal(4, settings.indexing.numThreads)
     end)
 
@@ -87,6 +111,9 @@ describe("js-i18n.config", function()
       assert.is_nil(settings.keySeparator)
       assert.is_nil(settings.translationFiles)
       assert.is_nil(settings.primaryLanguages)
+      assert.is_nil(settings.includePatterns)
+      assert.is_nil(settings.excludePatterns)
+      assert.is_nil(settings.diagnostics)
     end)
   end)
 end)

@@ -16,17 +16,41 @@ local M = {}
 --- @field max_length number
 --- @field max_width number
 
+--- @alias I18n.Severity "error" | "warning" | "information" | "hint"
+
+--- @class I18n.TranslationFilesConfig
+--- @field include_patterns? string[]
+--- @field exclude_patterns? string[]
+
+--- @class I18n.MissingTranslationConfig
+--- @field enabled? boolean
+--- @field severity? I18n.Severity
+--- @field required_languages? string[]
+--- @field optional_languages? string[]
+
+--- @class I18n.UnusedTranslationConfig
+--- @field enabled? boolean
+--- @field severity? I18n.Severity
+--- @field ignore_patterns? string[]
+
+--- @class I18n.DiagnosticsConfig
+--- @field missing_translation? I18n.MissingTranslationConfig
+--- @field unused_translation? I18n.UnusedTranslationConfig
+
+--- @class I18n.IndexingConfig
+--- @field num_threads? number
+
 --- @class I18n.ServerConfig
 --- @field cmd string[]
---- @field translation_files? { file_pattern: string }
+--- @field translation_files? I18n.TranslationFilesConfig
+--- @field include_patterns? string[]
+--- @field exclude_patterns? string[]
 --- @field key_separator? string
 --- @field namespace_separator? string
 --- @field default_namespace? string
 --- @field primary_languages? string[]
---- @field required_languages? string[]
---- @field optional_languages? string[]
---- @field diagnostics? { unused_keys: boolean }
---- @field indexing? { num_threads: number? }
+--- @field diagnostics? I18n.DiagnosticsConfig
+--- @field indexing? I18n.IndexingConfig
 
 --- @class I18n.Config
 --- @field virt_text I18n.VirtTextConfig
@@ -78,7 +102,19 @@ function M.build_server_settings(server_config)
   local settings = {}
 
   if server_config.translation_files then
-    settings.translationFiles = { filePattern = server_config.translation_files.file_pattern }
+    settings.translationFiles = {}
+    if server_config.translation_files.include_patterns then
+      settings.translationFiles.includePatterns = server_config.translation_files.include_patterns
+    end
+    if server_config.translation_files.exclude_patterns then
+      settings.translationFiles.excludePatterns = server_config.translation_files.exclude_patterns
+    end
+  end
+  if server_config.include_patterns then
+    settings.includePatterns = server_config.include_patterns
+  end
+  if server_config.exclude_patterns then
+    settings.excludePatterns = server_config.exclude_patterns
   end
   if server_config.key_separator then
     settings.keySeparator = server_config.key_separator
@@ -92,14 +128,39 @@ function M.build_server_settings(server_config)
   if server_config.primary_languages then
     settings.primaryLanguages = server_config.primary_languages
   end
-  if server_config.required_languages then
-    settings.requiredLanguages = server_config.required_languages
-  end
-  if server_config.optional_languages then
-    settings.optionalLanguages = server_config.optional_languages
-  end
   if server_config.diagnostics then
-    settings.diagnostics = { unusedKeys = server_config.diagnostics.unused_keys }
+    settings.diagnostics = {}
+
+    local mt = server_config.diagnostics.missing_translation
+    if mt then
+      settings.diagnostics.missingTranslation = {}
+      if mt.enabled ~= nil then
+        settings.diagnostics.missingTranslation.enabled = mt.enabled
+      end
+      if mt.severity then
+        settings.diagnostics.missingTranslation.severity = mt.severity
+      end
+      if mt.required_languages then
+        settings.diagnostics.missingTranslation.requiredLanguages = mt.required_languages
+      end
+      if mt.optional_languages then
+        settings.diagnostics.missingTranslation.optionalLanguages = mt.optional_languages
+      end
+    end
+
+    local ut = server_config.diagnostics.unused_translation
+    if ut then
+      settings.diagnostics.unusedTranslation = {}
+      if ut.enabled ~= nil then
+        settings.diagnostics.unusedTranslation.enabled = ut.enabled
+      end
+      if ut.severity then
+        settings.diagnostics.unusedTranslation.severity = ut.severity
+      end
+      if ut.ignore_patterns then
+        settings.diagnostics.unusedTranslation.ignorePatterns = ut.ignore_patterns
+      end
+    end
   end
   if server_config.indexing then
     settings.indexing = { numThreads = server_config.indexing.num_threads }
@@ -122,9 +183,9 @@ function M.migrate_config(opts)
   end
   if opts.translation_source then
     opts.server = opts.server or {}
-    opts.server.translation_files = { file_pattern = opts.translation_source[1] }
+    opts.server.translation_files = { include_patterns = { opts.translation_source[1] } }
     opts.translation_source = nil
-    table.insert(warnings, "translation_source -> server.translation_files.file_pattern")
+    table.insert(warnings, "translation_source -> server.translation_files.include_patterns")
   end
   if opts.key_separator and not (opts.server and opts.server.key_separator) then
     opts.server = opts.server or {}
