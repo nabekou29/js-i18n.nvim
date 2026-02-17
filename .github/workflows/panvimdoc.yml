@@ -1,0 +1,33 @@
+name: panvimdoc
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - README.md
+      - .github/workflows/panvimdoc.yml
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    name: pandoc to vimdoc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: kdheepak/panvimdoc@main
+        with:
+          vimdoc: js-i18n
+          pandoc: README.md
+          description: "JavaScript/TypeScript i18n support for Neovim"
+          demojify: true
+          dedupsubheadings: true
+          treesitter: true
+          ignorerawblocks: true
+          shiftheadinglevelby: 0
+          incrementheadinglevelby: 0
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(docs): auto generate vimdoc"
