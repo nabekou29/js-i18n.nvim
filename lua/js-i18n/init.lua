@@ -4,20 +4,15 @@ local virt_text = require("js-i18n.virt_text")
 
 local M = {}
 
-local MINIMUM_SERVER_VERSION = "0.5.0"
-
---- Get the js_i18n LSP client.
---- @return vim.lsp.Client?
-local function get_client()
-  return vim.lsp.get_clients({ name = "js_i18n" })[1]
-end
+local SERVER_NAME = c.SERVER_NAME
+local MINIMUM_SERVER_VERSION = c.MINIMUM_SERVER_VERSION
 
 --- Execute a command on the language server.
 --- @param command string
 --- @param arguments? any[]
 --- @param callback? fun(err: any, result: any)
 local function execute_command(command, arguments, callback)
-  local client = get_client()
+  local client = vim.lsp.get_clients({ name = SERVER_NAME, bufnr = 0 })[1]
   if not client then
     vim.notify("[js-i18n] Language server is not running.", vim.log.levels.WARN)
     return
@@ -128,7 +123,7 @@ M.setup = function(opts)
   vim.api.nvim_set_hl(0, "@i18n.translation", { link = "Comment", default = true })
 
   -- LSP server configuration (Neovim 0.11+)
-  vim.lsp.config["js_i18n"] = {
+  vim.lsp.config[SERVER_NAME] = {
     cmd = cmd,
     filetypes = {
       "javascript",
@@ -161,10 +156,9 @@ M.setup = function(opts)
           vim.log.levels.WARN
         )
       end
-      return true
     end,
   }
-  vim.lsp.enable("js_i18n")
+  vim.lsp.enable(SERVER_NAME)
 
   -- Client-side LSP command handler
   vim.lsp.commands["i18n.executeClientEditTranslation"] = function(command)
@@ -181,7 +175,7 @@ M.setup = function(opts)
     group = group,
     callback = function(ev)
       local client = vim.lsp.get_client_by_id(ev.data.client_id)
-      if not client or client.name ~= "js_i18n" then
+      if not client or client.name ~= SERVER_NAME then
         return
       end
       local value = ev.data.params and ev.data.params.value

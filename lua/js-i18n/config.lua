@@ -2,6 +2,9 @@ local utils = require("js-i18n.utils")
 
 local M = {}
 
+M.SERVER_NAME = "js_i18n"
+M.MINIMUM_SERVER_VERSION = "0.5.0"
+
 --- @class I18n.VirtText.FormatOpts
 --- @field key string
 --- @field value string
