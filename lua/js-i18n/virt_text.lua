@@ -7,13 +7,14 @@ local M = {}
 --- @type table<integer, uv_timer_t>
 local debounce_timers = {}
 
+local SERVER_NAME = c.SERVER_NAME
 local DEBOUNCE_MS = 200
 
 --- Get the js_i18n LSP client attached to a buffer.
 --- @param bufnr integer
 --- @return vim.lsp.Client?
 local function get_client(bufnr)
-  local clients = vim.lsp.get_clients({ bufnr = bufnr, name = "js_i18n" })
+  local clients = vim.lsp.get_clients({ bufnr = bufnr, name = SERVER_NAME })
   return clients[1]
 end
 
