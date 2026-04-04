@@ -130,6 +130,8 @@ M.setup = function(opts)
       "typescript",
       "javascriptreact",
       "typescriptreact",
+      "svelte",
+      "vue",
       "json",
     },
     root_markers = { "package.json", ".git" },
@@ -186,7 +188,7 @@ M.setup = function(opts)
   })
 
   vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-    pattern = "*.{ts,js,tsx,jsx}",
+    pattern = "*.{ts,js,tsx,jsx,svelte,vue}",
     group = group,
     callback = function(ev)
       virt_text.request_decorations_debounced(ev.buf)
