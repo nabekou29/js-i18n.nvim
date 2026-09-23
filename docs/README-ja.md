@@ -108,14 +108,37 @@ powered by [nabekou29/js-i18n-language-server](https://github.com/nabekou29/js-i
   -- .js-i18n.json ファイルでも設定可能（そちらが優先されます）
   server = {
     cmd = { "js-i18n-language-server" },  -- サーバーコマンド
-    translation_files = { file_pattern = "**/{locales,messages}/**/*.json" },
+    translation_files = {
+      include_patterns = { "**/{locales,messages}/**/*.json" },
+      exclude_patterns = {},
+    },
+    include_patterns = { "**/*.{js,jsx,ts,tsx,svelte,vue}" },  -- 解析対象のソースファイル
+    exclude_patterns = { "node_modules/**" },
     key_separator = ".",
     namespace_separator = nil,
     default_namespace = nil,
     primary_languages = nil,
-    required_languages = nil,
-    optional_languages = nil,
-    diagnostics = { unused_keys = true },
+    diagnostics = {
+      missing_translation = {
+        enabled = true,
+        severity = "warning",      -- "error" | "warning" | "information" | "hint"
+        required_languages = nil,  -- 指定した言語のみチェックする（optional_languages と併用不可）
+        optional_languages = nil,  -- 指定した言語をチェックしない（required_languages と併用不可）
+      },
+      unused_translation = {
+        enabled = true,
+        severity = "hint",
+        ignore_patterns = {},      -- 無視するキーの glob パターン
+      },
+    },
+    indexing = {
+      num_threads = nil,  -- nil = CPU コア数の 40%
+    },
+    frameworks = {
+      i18next = {
+        prefer_selector = false,  -- `t(|)` の補完を `t(($) => $.key)`（Selector API）形式にする
+      },
+    },
   },
 }
 ```
@@ -161,7 +184,7 @@ v1.0 では外部の [js-i18n-language-server](https://github.com/nabekou29/js-i
 {
   server = {
     primary_languages = { "ja" },
-    translation_files = { file_pattern = "**/locales/*.json" },
+    translation_files = { include_patterns = { "**/locales/*.json" } },
     key_separator = ".",
   },
 }
