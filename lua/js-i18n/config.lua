@@ -43,6 +43,12 @@ M.MINIMUM_SERVER_VERSION = "0.6.0"
 --- @class I18n.IndexingConfig
 --- @field num_threads? number
 
+--- @class I18n.I18nextConfig
+--- @field prefer_selector? boolean
+
+--- @class I18n.FrameworksConfig
+--- @field i18next? I18n.I18nextConfig
+
 --- @class I18n.ServerConfig
 --- @field cmd string[]
 --- @field translation_files? I18n.TranslationFilesConfig
@@ -54,6 +60,7 @@ M.MINIMUM_SERVER_VERSION = "0.6.0"
 --- @field primary_languages? string[]
 --- @field diagnostics? I18n.DiagnosticsConfig
 --- @field indexing? I18n.IndexingConfig
+--- @field frameworks? I18n.FrameworksConfig
 
 --- @class I18n.Config
 --- @field virt_text I18n.VirtTextConfig
@@ -167,6 +174,17 @@ function M.build_server_settings(server_config)
   end
   if server_config.indexing then
     settings.indexing = { numThreads = server_config.indexing.num_threads }
+  end
+  if server_config.frameworks then
+    settings.frameworks = {}
+
+    local i18next = server_config.frameworks.i18next
+    if i18next then
+      settings.frameworks.i18next = {}
+      if i18next.prefer_selector ~= nil then
+        settings.frameworks.i18next.preferSelector = i18next.prefer_selector
+      end
+    end
   end
 
   return settings

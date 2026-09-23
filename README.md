@@ -108,14 +108,37 @@ The default settings are as follows. For the complete list, refer to [config.lua
   -- Can also be configured via .js-i18n.json file (which takes priority)
   server = {
     cmd = { "js-i18n-language-server" },  -- Server command
-    translation_files = { file_pattern = "**/{locales,messages}/**/*.json" },
+    translation_files = {
+      include_patterns = { "**/{locales,messages}/**/*.json" },
+      exclude_patterns = {},
+    },
+    include_patterns = { "**/*.{js,jsx,ts,tsx,svelte,vue}" },  -- Source files to analyze
+    exclude_patterns = { "node_modules/**" },
     key_separator = ".",
     namespace_separator = nil,
     default_namespace = nil,
     primary_languages = nil,
-    required_languages = nil,
-    optional_languages = nil,
-    diagnostics = { unused_keys = true },
+    diagnostics = {
+      missing_translation = {
+        enabled = true,
+        severity = "warning",      -- "error" | "warning" | "information" | "hint"
+        required_languages = nil,  -- Only check these languages (exclusive with optional_languages)
+        optional_languages = nil,  -- Skip these languages (exclusive with required_languages)
+      },
+      unused_translation = {
+        enabled = true,
+        severity = "hint",
+        ignore_patterns = {},      -- Glob patterns for keys to ignore
+      },
+    },
+    indexing = {
+      num_threads = nil,  -- nil = 40% of CPU cores
+    },
+    frameworks = {
+      i18next = {
+        prefer_selector = false,  -- Complete `t(|)` as `t(($) => $.key)` (Selector API)
+      },
+    },
   },
 }
 ```
@@ -160,7 +183,7 @@ Deprecated config keys are automatically converted and a warning is displayed.
 {
   server = {
     primary_languages = { "ja" },
-    translation_files = { file_pattern = "**/locales/*.json" },
+    translation_files = { include_patterns = { "**/locales/*.json" } },
     key_separator = ".",
   },
 }
