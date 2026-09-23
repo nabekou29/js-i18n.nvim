@@ -116,6 +116,11 @@ The default settings are as follows. For the complete list, refer to [config.lua
     required_languages = nil,
     optional_languages = nil,
     diagnostics = { unused_keys = true },
+    frameworks = {
+      i18next = {
+        prefer_selector = false,  -- Complete `t(|)` as `t(($) => $.key)` (Selector API)
+      },
+    },
   },
 }
 ```

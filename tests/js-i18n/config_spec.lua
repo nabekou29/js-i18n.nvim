@@ -87,6 +87,9 @@ describe("js-i18n.config", function()
           },
         },
         indexing = { num_threads = 4 },
+        frameworks = {
+          i18next = { prefer_selector = true },
+        },
       })
       assert.are.equal("-", settings.keySeparator)
       assert.are.equal(":", settings.namespaceSeparator)
@@ -102,6 +105,17 @@ describe("js-i18n.config", function()
       assert.are.equal("hint", settings.diagnostics.unusedTranslation.severity)
       assert.are.same({ "debug.*" }, settings.diagnostics.unusedTranslation.ignorePatterns)
       assert.are.equal(4, settings.indexing.numThreads)
+      assert.are.equal(true, settings.frameworks.i18next.preferSelector)
+    end)
+
+    it("should pass prefer_selector = false through", function()
+      local settings = config.build_server_settings({
+        cmd = { "js-i18n-language-server" },
+        frameworks = {
+          i18next = { prefer_selector = false },
+        },
+      })
+      assert.are.equal(false, settings.frameworks.i18next.preferSelector)
     end)
 
     it("should omit nil fields", function()
@@ -114,6 +128,7 @@ describe("js-i18n.config", function()
       assert.is_nil(settings.includePatterns)
       assert.is_nil(settings.excludePatterns)
       assert.is_nil(settings.diagnostics)
+      assert.is_nil(settings.frameworks)
     end)
   end)
 end)
