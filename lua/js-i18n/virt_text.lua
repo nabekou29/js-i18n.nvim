@@ -30,7 +30,7 @@ local function render_decorations(bufnr, decorations)
 
   for _, dec in ipairs(decorations) do
     local range = dec.range
-    local row = range.start.line
+    local row = range["end"].line
     local col = range["end"].character
 
     local text = dec.value
